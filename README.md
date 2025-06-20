@@ -25,6 +25,7 @@ Choose from three different planning experiences:
 - State-of-the-art multi-agent collaboration
 
 ## 🏗️ LangGraph System Architecture
+![](https://github.com/abh2050/langraph_multi_agent_ai_travel_agent/blob/main/Editor%20_%20Mermaid%20Chart-2025-06-20-183945.png)
 
 ### Framework Components
 - **LangGraph StateGraph**: Workflow orchestration and state management

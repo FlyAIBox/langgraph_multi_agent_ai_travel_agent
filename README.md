@@ -1,142 +1,142 @@
 ![](https://github.com/abh2050/langgraph_multi_agent_ai_travel_agent/blob/main/Gemini_Generated_Image_mk2gn4mk2gn4mk2g.png)
-# 🚀 AI Travel Agent & Expense Planner - LangGraph Multi-Agent System
+# 🚀 AI旅行助手与费用规划师 - LangGraph多智能体系统
 
-## Overview
+## 项目概述
 
-A state-of-the-art multi-agent travel planning system built with **LangGraph**, **Google Gemini Flash-2.0**, and **DuckDuckGo Search**. The system offers three different planning approaches, from traditional single-agent to cutting-edge multi-agent collaboration using modern industry frameworks.
+这是一个使用**LangGraph**、**Google Gemini Flash-2.0**和**DuckDuckGo搜索**构建的最先进的多智能体旅行规划系统。该系统提供三种不同的规划方法，从传统的单智能体到使用现代工业框架的前沿多智能体协作。
 
-## 🤖 Planning Options
+## 🤖 规划选项
 
-Choose from three different planning experiences:
+从三种不同的规划体验中选择：
 
-### 1. 🔧 Single-Agent Planning (Classic)
-- Traditional single AI agent approach
-- Direct planning methodology
-- Proven reliability and efficiency
+### 1. 🔧 单智能体规划（经典版）
+- 传统的单AI智能体方法
+- 直接规划方法论
+- 经过验证的可靠性和效率
 
-### 2. 🚀 Legacy Multi-Agent (Custom Framework)
-- 6 specialized AI agents working together
-- Custom multi-agent framework
-- Enhanced recommendations through collaboration
+### 2. 🚀 传统多智能体（自定义框架）
+- 6个专业AI智能体协同工作
+- 自定义多智能体框架
+- 通过协作增强推荐效果
 
-### 3. 🌟 LangGraph Multi-Agent (Advanced) ⭐ **RECOMMENDED**
-- **Google Gemini Flash-2.0** powered agents
-- **DuckDuckGo real-time search** integration
-- **LangGraph workflow** orchestration
-- State-of-the-art multi-agent collaboration
+### 3. 🌟 LangGraph多智能体（高级版）⭐ **推荐使用**
+- **Google Gemini Flash-2.0**驱动的智能体
+- **DuckDuckGo实时搜索**集成
+- **LangGraph工作流**编排
+- 最先进的多智能体协作
 
-## 🏗️ LangGraph System Architecture
+## 🏗️ LangGraph系统架构
 ![](https://github.com/abh2050/langraph_multi_agent_ai_travel_agent/blob/main/Editor%20_%20Mermaid%20Chart-2025-06-20-183945.png)
 
-### Framework Components
-- **LangGraph StateGraph**: Workflow orchestration and state management
-- **Google Gemini Flash-2.0**: Advanced AI reasoning and natural language processing
-- **DuckDuckGo Search**: Real-time information retrieval (no API key needed)
-- **Pydantic**: Type safety and data validation
-- **Custom Agent Protocols**: Specialized communication between agents
+### 框架组件
+- **LangGraph StateGraph**: 工作流编排和状态管理
+- **Google Gemini Flash-2.0**: 高级AI推理和自然语言处理
+- **DuckDuckGo搜索**: 实时信息检索（无需API密钥）
+- **Pydantic**: 类型安全和数据验证
+- **自定义智能体协议**: 智能体间的专业化通信
 
-### 🤖 AI Agent Network
+### 🤖 AI智能体网络
 
-| Agent | Role | Capabilities |
+| 智能体 | 角色 | 能力 |
 |-------|------|-------------|
-| **Coordinator** | Workflow orchestration & decision synthesis | Master planning, task delegation, consensus building |
-| **Travel Advisor** | Destination expertise with live search | Attraction research, destination insights, cultural guidance |
-| **Weather Analyst** | Weather intelligence with current data | Weather forecasting, climate analysis, packing advice |
-| **Budget Optimizer** | Cost analysis with real-time pricing | Budget planning, cost optimization, savings strategies |
-| **Local Expert** | Insider knowledge with local info | Local tips, hidden gems, cultural etiquette |
-| **Itinerary Planner** | Schedule optimization & logistics | Day-by-day planning, route optimization, timing |
+| **协调员** | 工作流编排与决策综合 | 总体规划、任务委派、共识构建 |
+| **旅行顾问** | 目的地专业知识与实时搜索 | 景点研究、目的地洞察、文化指导 |
+| **天气分析师** | 天气情报与当前数据 | 天气预报、气候分析、打包建议 |
+| **预算优化师** | 成本分析与实时定价 | 预算规划、成本优化、省钱策略 |
+| **当地专家** | 内部知识与本地信息 | 当地贴士、隐藏宝石、文化礼仪 |
+| **行程规划师** | 日程优化与物流 | 逐日规划、路线优化、时间安排 |
 
-## 🎯 Key Features
+## 🎯 核心功能
 
-### Advanced Capabilities
-- ✅ **Real-time Search Integration**: Live data from DuckDuckGo
-- ✅ **State Management**: Persistent conversation state across agents
-- ✅ **Tool-Augmented Agents**: Each agent has specialized search tools
-- ✅ **Collaborative Decision Making**: Agents work together to create optimal plans
-- ✅ **Workflow Orchestration**: LangGraph manages complex agent interactions
-- ✅ **Error Handling**: Robust error recovery and fallback mechanisms
+### 高级能力
+- ✅ **实时搜索集成**: 来自DuckDuckGo的实时数据
+- ✅ **状态管理**: 跨智能体的持久对话状态
+- ✅ **工具增强智能体**: 每个智能体都有专门的搜索工具
+- ✅ **协作决策制定**: 智能体协同工作创建最优计划
+- ✅ **工作流编排**: LangGraph管理复杂的智能体交互
+- ✅ **错误处理**: 强大的错误恢复和回退机制
 
-### Search Tools
-1. **Destination Information**: General destination research
-2. **Weather Intelligence**: Current and forecasted weather data
-3. **Attraction Discovery**: Top attractions and activities
-4. **Hotel Research**: Accommodation options and pricing
-5. **Restaurant Finder**: Dining recommendations and reviews
-6. **Local Insights**: Cultural tips and insider knowledge
-7. **Budget Analysis**: Cost estimates and budget planning
-## 🚀 Quick Start
+### 搜索工具
+1. **目的地信息**: 通用目的地研究
+2. **天气情报**: 当前和预测的天气数据
+3. **景点发现**: 顶级景点和活动
+4. **酒店研究**: 住宿选择和定价
+5. **餐厅查找**: 用餐推荐和评价
+6. **当地洞察**: 文化贴士和内部知识
+7. **预算分析**: 成本估算和预算规划
+## 🚀 快速开始
 
-### Prerequisites
+### 前置要求
 ```bash
 # Python 3.8+
 pip install -r requirements.txt
 ```
 
-### Setup
-1. **Get Gemini API Key**: Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. **Configure Environment**: Add your API key to `.env` file
+### 安装配置
+1. **获取Gemini API密钥**: 访问 [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. **配置环境**: 将您的API密钥添加到 `.env` 文件
    ```bash
    GEMINI_API_KEY=your_actual_api_key_here
    ```
-3. **Verify Installation**: Run the test script
+3. **验证安装**: 运行测试脚本
    ```bash
    python test_langgraph_system.py
    ```
 
-### Running the System
+### 运行系统
 
-#### Option 1: Main Menu (All 3 Systems)
+#### 选项1: 主菜单（全部3个系统）
 ```bash
 python main.py
-# Select option 3 for LangGraph (Recommended)
-# Select option 2 for Legacy Multi-Agent
-# Select option 1 for Single-Agent
+# 选择选项3使用LangGraph（推荐）
+# 选择选项2使用传统多智能体
+# 选择选项1使用单智能体
 ```
 
-#### Option 2: Direct LangGraph System
+#### 选项2: 直接运行LangGraph系统
 ```bash
 python langgraph_main.py
 ```
 
-#### Option 3: Test Without API Key
+#### 选项3: 无API密钥测试
 ```bash
 python test_langgraph_system.py
 ```
 
-## 📊 Usage Examples
+## 📊 使用示例
 
-### Demo Mode
+### 演示模式
 ```bash
 python langgraph_main.py
-# Select option 1 for Tokyo demonstration
+# 选择选项1进行北京演示
 ```
 
-### Interactive Planning
+### 交互式规划
 ```bash
 python langgraph_main.py
-# Select option 2 for custom trip planning
+# 选择选项2进行自定义旅行规划
 ```
 
-### System Validation
+### 系统验证
 ```bash
 python test_langgraph_system.py
-# Tests all components without API calls
+# 测试所有组件，无需API调用
 ```
 
-## 🛠️ Configuration
+## 🛠️ 配置说明
 
-### Environment Variables
+### 环境变量
 ```bash
-# Required for LangGraph System
+# LangGraph系统必需
 GEMINI_API_KEY=your_gemini_api_key
 
-# Optional (for legacy systems)
+# 可选（用于传统系统）
 OPENWEATHER_API_KEY=your_weather_api_key
 GOOGLE_PLACES_API_KEY=your_places_api_key
 EXCHANGERATE_API_KEY=your_exchange_rate_api_key
 ```
 
-### Model Configuration
+### 模型配置
 ```python
 class LangGraphConfig:
     GEMINI_MODEL = "gemini-2.0-flash"
@@ -145,77 +145,77 @@ class LangGraphConfig:
     TOP_P = 0.9
 ```
 
-### API Configuration (Optional)
-For enhanced legacy functionality, obtain free API keys:
+### API配置（可选）
+为了增强传统功能，可获取免费API密钥：
 
-1. **Google Gemini API** (Required for LangGraph system)
-   - Get key: https://makersuite.google.com/app/apikey
-   - Add to .env: `GEMINI_API_KEY=your_key`
+1. **Google Gemini API**（LangGraph系统必需）
+   - 获取密钥: https://makersuite.google.com/app/apikey
+   - 添加到.env: `GEMINI_API_KEY=your_key`
 
-2. **OpenWeather API** (Legacy weather data)
-   - Get key: https://openweathermap.org/api
-   - Add to .env: `OPENWEATHER_API_KEY=your_key`
+2. **OpenWeather API**（传统天气数据）
+   - 获取密钥: https://openweathermap.org/api
+   - 添加到.env: `OPENWEATHER_API_KEY=your_key`
 
-3. **Google Places API** (Legacy attractions/hotels)
-   - Get key: Google Cloud Console
-   - Add to .env: `GOOGLE_PLACES_API_KEY=your_key`
+3. **Google Places API**（传统景点/酒店）
+   - 获取密钥: Google Cloud Console
+   - 添加到.env: `GOOGLE_PLACES_API_KEY=your_key`
 
-4. **Exchange Rate API** (Legacy currency conversion)
-   - Get key: https://exchangerate-api.com/
-   - Add to .env: `EXCHANGERATE_API_KEY=your_key`
+4. **Exchange Rate API**（传统货币转换）
+   - 获取密钥: https://exchangerate-api.com/
+   - 添加到.env: `EXCHANGERATE_API_KEY=your_key`
 
-**Note**: The LangGraph system uses DuckDuckGo search (no API key needed) and works independently of legacy APIs.
+**注意**: LangGraph系统使用DuckDuckGo搜索（无需API密钥），独立于传统API工作。
 
-## Example Usage
+## 使用示例
 
 ```
-🌍 AI Travel Agent & Expense Planner
+🌍 AI旅行助手与费用规划师
 ====================================
 
-Enter destination: London
-Start date: 2025-12-25
-End date: 2025-12-30
-Budget range: Mid-range
-Currency: CAD
-Group size: 2
-Interests: museums, food, culture
+输入目的地: 北京
+开始日期: 2025-12-25
+结束日期: 2025-12-30
+预算范围: 中等预算
+货币: CNY
+团队人数: 2
+兴趣爱好: 博物馆, 美食, 文化
 
-→ Generates complete 5-day London itinerary with:
-   • Weather forecasts
-   • Museum and restaurant recommendations
-   • Hotel options
-   • Daily cost breakdowns
-   • Currency-converted expenses
+→ 生成完整的5天北京行程，包含:
+   • 天气预报
+   • 博物馆和餐厅推荐
+   • 酒店选择
+   • 每日费用明细
+   • 货币转换费用
 ```
-## Sample Report
+## 示例报告
 ```
 ================================================================================
-LANGGRAPH MULTI-AGENT AI TRAVEL PLANNING REPORT
+LANGGRAPH多智能体AI旅行规划报告
 ================================================================================
-Generated: 2025-06-20 12:58:25
-System: LangGraph Framework with Google Gemini & DuckDuckGo
+生成时间: 2025-06-20 12:58:25
+系统: LangGraph框架 + Google Gemini & DuckDuckGo
 
-TRIP OVERVIEW:
+行程概览:
 ----------------------------------------
-Destination: Delhi
-Duration: 3 days
-Group Size: 3 people
-Budget Range: mid-range
-Interests: 
+目的地: 上海
+行程时长: 3天
+团队人数: 3人
+预算范围: 中等预算
+兴趣爱好:
 
-SYSTEM PERFORMANCE:
+系统性能:
 ----------------------------------------
-Planning Method: LangGraph Multi-Agent Collaboration
-Total Iterations: 7
-Agents Involved: 5
+规划方法: LangGraph多智能体协作
+总迭代次数: 7
+参与智能体: 5个
 
-AGENT CONTRIBUTIONS:
+智能体贡献:
 ----------------------------------------
 
-TRAVEL ADVISOR:
-Status: completed
-Timestamp: 2025-06-20T12:57:24.431678
-Response: _agent: Okay, I can help you plan a 3-day trip to Delhi for 3 people, with a mid-range budget, sometime between July 21st and July 30th, 2025. Since you haven't specified any particular interests, I'll create a well-rounded itinerary covering historical sites, cultural experiences, and local flavors. Here's a possible plan:
+旅行顾问:
+状态: 已完成
+时间戳: 2025-06-20T12:57:24.431678
+回复: 好的，我可以帮您规划一个3天的上海之旅，适合3人，中等预算，时间在2025年7月21日至7月30日之间。由于您没有指定特定的兴趣爱好，我将创建一个全面的行程，涵盖历史景点、文化体验和当地美食。以下是可能的计划:
 
 **General Advice & Considerations:**
 
@@ -519,185 +519,185 @@ End of LangGraph Multi-Agent Travel Planning Report
 ================================================================================
 ```
 
-## 🏗️ Architecture
+## 🏗️ 系统架构
 
-### Project Structure
+### 项目结构
 ```
 📁 ai_travel_agent/
-├── main.py                    # Multi-system entry point
-├── langgraph_main.py         # LangGraph system entry
-├── test_langgraph_system.py  # Comprehensive testing
-├── agents/                   # Agent implementations
-│   ├── langgraph_agents.py   # LangGraph agent system
-│   ├── multi_agent_orchestrator.py # Legacy multi-agent
-│   └── travel_agents.py      # Individual agent classes
-├── config/                   # Configuration management
-│   ├── langgraph_config.py   # LangGraph configuration
-│   ├── api_config.py         # Legacy API settings
-│   └── app_config.py         # Application settings
-├── tools/                    # LangGraph tools
-│   └── travel_tools.py       # 7 DuckDuckGo search tools
-├── data/                     # Data models
-│   └── models.py             # Data classes
-├── modules/                  # Legacy business logic
-│   ├── user_input.py         # Input handling & validation
-│   ├── weather_service.py    # Weather data integration
-│   ├── attraction_finder.py  # Attraction discovery
-│   ├── hotel_estimator.py    # Accommodation estimation
-│   ├── currency_converter.py # Currency conversion
-│   ├── expense_calculator.py # Cost calculations
-│   ├── itinerary_planner.py  # Day-by-day planning
-│   └── trip_summary.py       # Report generation
-└── utils/                    # Utility functions
-    └── helpers.py            # Common helper functions
+├── main.py                    # 多系统入口点
+├── langgraph_main.py         # LangGraph系统入口
+├── test_langgraph_system.py  # 综合测试
+├── agents/                   # 智能体实现
+│   ├── langgraph_agents.py   # LangGraph智能体系统
+│   ├── multi_agent_orchestrator.py # 传统多智能体
+│   └── travel_agents.py      # 单个智能体类
+├── config/                   # 配置管理
+│   ├── langgraph_config.py   # LangGraph配置
+│   ├── api_config.py         # 传统API设置
+│   └── app_config.py         # 应用程序设置
+├── tools/                    # LangGraph工具
+│   └── travel_tools.py       # 7个DuckDuckGo搜索工具
+├── data/                     # 数据模型
+│   └── models.py             # 数据类
+├── modules/                  # 传统业务逻辑
+│   ├── user_input.py         # 输入处理和验证
+│   ├── weather_service.py    # 天气数据集成
+│   ├── attraction_finder.py  # 景点发现
+│   ├── hotel_estimator.py    # 住宿估算
+│   ├── currency_converter.py # 货币转换
+│   ├── expense_calculator.py # 成本计算
+│   ├── itinerary_planner.py  # 逐日规划
+│   └── trip_summary.py       # 报告生成
+└── utils/                    # 实用工具函数
+    └── helpers.py            # 通用辅助函数
 ```
 
-### System Comparison
+### 系统对比
 
-| Feature | Single-Agent | Legacy Multi-Agent | LangGraph System |
+| 功能特性 | 单智能体 | 传统多智能体 | LangGraph系统 |
 |---------|-------------|-------------------|------------------|
-| **Framework** | Custom | Custom | LangGraph + LangChain |
-| **LLM** | Mock/Static | Mock/Static | Google Gemini Flash-2.0 |
-| **Search** | Static Data | Static Data | DuckDuckGo Real-time |
-| **State Management** | None | Basic | Advanced (StateGraph) |
-| **Tool Integration** | Limited | Limited | Full Tool Ecosystem |
-| **Collaboration** | None | Basic | Advanced Workflows |
-| **Scalability** | Low | Medium | High |
-| **Maintainability** | Low | Medium | High |
+| **框架** | 自定义 | 自定义 | LangGraph + LangChain |
+| **大语言模型** | 模拟/静态 | 模拟/静态 | Google Gemini Flash-2.0 |
+| **搜索** | 静态数据 | 静态数据 | DuckDuckGo实时 |
+| **状态管理** | 无 | 基础 | 高级（StateGraph） |
+| **工具集成** | 有限 | 有限 | 完整工具生态系统 |
+| **协作能力** | 无 | 基础 | 高级工作流 |
+| **可扩展性** | 低 | 中等 | 高 |
+| **可维护性** | 低 | 中等 | 高 |
 
-## Dependencies
+## 依赖项
 
-### Required Packages
+### 必需包
 ```
-requests>=2.31.0    # HTTP requests for API calls
-python-dotenv>=1.0.0 # Environment variable management
+requests>=2.31.0    # 用于API调用的HTTP请求
+python-dotenv>=1.0.0 # 环境变量管理
 ```
 
-### External APIs (Optional)
-- OpenWeather API: Weather forecasts
-- Google Places API: Attractions and hotels
-- Exchange Rate API: Currency conversion
+### 外部API（可选）
+- OpenWeather API: 天气预报
+- Google Places API: 景点和酒店
+- Exchange Rate API: 货币转换
 
-## 🧪 Testing
+## 🧪 测试
 
-### Run Tests
+### 运行测试
 ```bash
-# LangGraph system validation (no API key needed)
+# LangGraph系统验证（无需API密钥）
 python test_langgraph_system.py
 
-# Legacy system tests
-python -m pytest tests/ (if tests directory exists)
+# 传统系统测试
+python -m pytest tests/ (如果tests目录存在)
 ```
 
-### System Validation
-The `test_langgraph_system.py` script validates:
-- All LangGraph components
-- Tool integrations
-- Configuration management
-- Import compatibility
-- System readiness
+### 系统验证
+`test_langgraph_system.py` 脚本验证：
+- 所有LangGraph组件
+- 工具集成
+- 配置管理
+- 导入兼容性
+- 系统就绪状态
 
-## 🚨 Troubleshooting
+## 🚨 故障排除
 
-### Common Issues
+### 常见问题
 
-1. **API Quota Exceeded**
+1. **API配额超限**
    ```
-   Error: 429 You exceeded your current quota
-   Solution: Wait for quota reset or upgrade API plan
+   错误: 429 您已超出当前配额
+   解决方案: 等待配额重置或升级API计划
    ```
 
-2. **Import Errors**
+2. **导入错误**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configuration Issues**
+3. **配置问题**
    ```bash
    python test_langgraph_system.py
    ```
 
-4. **Missing API Key**
+4. **缺少API密钥**
    ```
-   Error: GEMINI_API_KEY not found
-   Solution: Add your API key to .env file
+   错误: 未找到GEMINI_API_KEY
+   解决方案: 将您的API密钥添加到.env文件
    ```
 
-### Debug Mode
+### 调试模式
 ```bash
 export DEBUG=true
 python langgraph_main.py
 ```
 
-## Features in Detail
+## 功能详情
 
-### 🌤️ Weather Integration
-- 5-day weather forecasts
-- Temperature, conditions, humidity
-- Weather-based activity recommendations
-- Packing suggestions
+### 🌤️ 天气集成
+- 5天天气预报
+- 温度、天气状况、湿度
+- 基于天气的活动推荐
+- 打包建议
 
-### 🏛️ Attraction Discovery
-- Museums and cultural sites
-- Restaurants by cuisine type
-- Activities based on interests
-- Rating and cost information
+### 🏛️ 景点发现
+- 博物馆和文化景点
+- 按菜系分类的餐厅
+- 基于兴趣的活动
+- 评分和费用信息
 
-### 🏨 Accommodation
-- Budget-appropriate hotel recommendations
-- Price per night calculations
-- Amenity listings
-- Group accommodation options
+### 🏨 住宿安排
+- 符合预算的酒店推荐
+- 每晚价格计算
+- 设施清单
+- 团体住宿选择
 
-### 💱 Currency Support
-- Real-time exchange rates
-- 10+ international currencies
-- Automatic cost conversion
-- Rate caching for performance
+### 💱 货币支持
+- 实时汇率
+- 10+种国际货币
+- 自动成本转换
+- 汇率缓存提升性能
 
-### 📅 Itinerary Planning
-- Day-by-day schedules
-- Weather-optimized activity ordering
-- Transportation suggestions
-- Timing recommendations
+### 📅 行程规划
+- 逐日时间安排
+- 天气优化的活动排序
+- 交通建议
+- 时间推荐
 
-### 📊 Expense Management
-- Detailed cost breakdowns
-- Budget vs actual tracking
-- Group cost calculations
-- Cost-saving recommendations
+### 📊 费用管理
+- 详细成本分解
+- 预算与实际跟踪
+- 团体费用计算
+- 省钱建议
 
-## Contributing
+## 贡献指南
 
-### Code Structure
-- Follow object-oriented design principles
-- Maintain modular architecture
-- Include comprehensive error handling
-- Add unit tests for new features
+### 代码结构
+- 遵循面向对象设计原则
+- 保持模块化架构
+- 包含全面的错误处理
+- 为新功能添加单元测试
 
-### Development Setup
+### 开发环境设置
 ```bash
-# Install development dependencies
+# 安装开发依赖
 pip install -r requirements.txt
 
-# Run validation
+# 运行验证
 python validate.py
 
-# Test specific modules
+# 测试特定模块
 python -m pytest tests/test_attraction.py
 ```
 
-## License
+## 许可证
 
-This project is for educational purposes as part of the AI Agents assignment.
+本项目用于教育目的，作为AI智能体作业的一部分。
 
-## Support
+## 支持
 
-For issues or questions:
-1. Check the validation script: `python validate.py`
-2. Review error messages and logs
-3. Verify API key configuration (if using external APIs)
+如有问题或疑问：
+1. 检查验证脚本: `python validate.py`
+2. 查看错误消息和日志
+3. 验证API密钥配置（如果使用外部API）
 
 ---
 
-**Built with ❤️ for intelligent travel planning**
+**用❤️构建，致力于智能旅行规划**

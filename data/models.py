@@ -1,4 +1,18 @@
-"""Data models for the AI Travel Agent"""
+"""
+AI旅行助手的数据模型
+
+这个模块定义了旅行规划系统中使用的所有数据结构，包括：
+- 天气信息模型
+- 景点和活动模型
+- 酒店住宿模型
+- 行程计划模型
+- 旅行总结模型
+
+适用于大模型技术初级用户：
+数据模型是程序中用来表示和组织信息的结构。
+使用dataclass装饰器可以自动生成常用的方法，
+让代码更简洁和易于维护。
+"""
 
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
@@ -6,47 +20,97 @@ from datetime import date, datetime
 
 @dataclass
 class Weather:
-    """Weather information for a specific day"""
-    temperature: float  # in Celsius
-    description: str
-    humidity: int  # percentage
-    wind_speed: float  # km/h
-    feels_like: float  # in Celsius
-    date: str  # YYYY-MM-DD format
-    
-    def __str__(self) -> str:
-        return f"{self.description}, {self.temperature}°C (feels like {self.feels_like}°C)"
+    """
+    特定日期的天气信息模型
 
-@dataclass  
-class Attraction:
-    """Tourist attraction, restaurant, or activity"""
-    name: str
-    type: str  # 'attraction', 'restaurant', 'activity'
-    rating: float  # 1-5 scale
-    price_level: int  # 0-4 scale (Google Places style)
-    address: str
-    description: str
-    estimated_cost: float  # in USD
-    duration: int  # hours
-    
+    存储某一天的完整天气数据，包括温度、天气描述、
+    湿度、风速等信息，用于生成旅行建议。
+
+    属性说明：
+    - temperature: 温度（摄氏度）
+    - description: 天气描述（如"晴天"、"多云"等）
+    - humidity: 湿度百分比
+    - wind_speed: 风速（公里/小时）
+    - feels_like: 体感温度（摄氏度）
+    - date: 日期（YYYY-MM-DD格式）
+    """
+    temperature: float  # 温度（摄氏度）
+    description: str    # 天气描述
+    humidity: int       # 湿度百分比
+    wind_speed: float   # 风速（公里/小时）
+    feels_like: float   # 体感温度（摄氏度）
+    date: str          # 日期（YYYY-MM-DD格式）
+
     def __str__(self) -> str:
-        return f"{self.name} ({self.rating}⭐) - ${self.estimated_cost}"
+        """返回天气信息的字符串表示"""
+        return f"{self.description}, {self.temperature}°C (体感温度 {self.feels_like}°C)"
+
+@dataclass
+class Attraction:
+    """
+    旅游景点、餐厅或活动模型
+
+    表示旅行中可以参与的各种活动，包括景点游览、
+    餐厅用餐、娱乐活动等。
+
+    属性说明：
+    - name: 名称
+    - type: 类型（'attraction'景点, 'restaurant'餐厅, 'activity'活动）
+    - rating: 评分（1-5分制）
+    - price_level: 价格等级（0-4级，类似Google Places风格）
+    - address: 地址
+    - description: 详细描述
+    - estimated_cost: 预估费用（人民币）
+    - duration: 预计游览时长（小时）
+    """
+    name: str               # 名称
+    type: str              # 类型
+    rating: float          # 评分（1-5分制）
+    price_level: int       # 价格等级（0-4级）
+    address: str           # 地址
+    description: str       # 详细描述
+    estimated_cost: float  # 预估费用（人民币）
+    duration: int          # 预计时长（小时）
+
+    def __str__(self) -> str:
+        """返回景点信息的字符串表示"""
+        return f"{self.name} ({self.rating}⭐) - ¥{self.estimated_cost}"
 
 @dataclass
 class Hotel:
-    """Hotel accommodation option"""
-    name: str
-    rating: float  # 1-5 scale
-    price_per_night: float  # in USD
-    address: str
-    amenities: List[str]
-    
+    """
+    酒店住宿选择模型
+
+    表示可选的住宿选项，包括酒店的基本信息、
+    价格、设施等。
+
+    属性说明：
+    - name: 酒店名称
+    - rating: 评分（1-5分制）
+    - price_per_night: 每晚价格（人民币）
+    - address: 地址
+    - amenities: 设施服务列表
+    """
+    name: str               # 酒店名称
+    rating: float          # 评分（1-5分制）
+    price_per_night: float # 每晚价格（人民币）
+    address: str           # 地址
+    amenities: List[str]   # 设施服务列表
+
     def calculate_total_cost(self, nights: int) -> float:
-        """Calculate total cost for given number of nights"""
+        """
+        计算指定夜数的总费用
+
+        参数：
+        - nights: 住宿夜数
+
+        返回：总住宿费用
+        """
         return self.price_per_night * nights
-    
+
     def __str__(self) -> str:
-        return f"{self.name} ({self.rating}⭐) - ${self.price_per_night}/night"
+        """返回酒店信息的字符串表示"""
+        return f"{self.name} ({self.rating}⭐) - ¥{self.price_per_night}/晚"
 
 @dataclass
 class Transportation:

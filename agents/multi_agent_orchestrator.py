@@ -1,6 +1,19 @@
 """
-Multi-Agent Travel Planning Orchestrator
-Coordinates all specialized agents to deliver comprehensive travel planning
+多智能体旅行规划编排器
+
+协调所有专业智能体，提供全面的旅行规划服务。
+这个模块是传统多智能体系统的核心，展示了如何构建
+一个复杂的协作AI系统。
+
+主要功能：
+- 智能体通信协调
+- 决策引擎管理
+- 任务分配和执行
+- 结果整合和优化
+
+适用于大模型技术初级用户：
+这个模块展示了多智能体系统的设计模式，
+包括智能体间的通信、协作和决策机制。
 """
 
 from typing import Dict, Any, List, Optional
@@ -9,42 +22,64 @@ import asyncio
 
 from . import BaseAgent, AgentRole, MessageType, Message, AgentCommunicationHub, AgentDecisionEngine
 from .travel_agents import (
-    TravelAdvisorAgent, BudgetOptimizerAgent, WeatherAnalystAgent, 
+    TravelAdvisorAgent, BudgetOptimizerAgent, WeatherAnalystAgent,
     LocalExpertAgent, ItineraryPlannerAgent, CoordinatorAgent
 )
 
 class MultiAgentTravelOrchestrator:
     """
-    Main orchestrator for the multi-agent travel planning system.
-    Replaces the single TravelAgent class with collaborative agent system.
+    多智能体旅行规划系统的主编排器
+
+    这个类是传统多智能体系统的核心，它：
+    1. 初始化和管理所有专业智能体
+    2. 协调智能体间的通信和协作
+    3. 管理决策引擎和任务分配
+    4. 整合各智能体的输出结果
+    5. 提供统一的旅行规划接口
+
+    主要组件：
+    - 通信中心：管理智能体间的消息传递
+    - 决策引擎：处理冲突和达成共识
+    - 专业智能体：6个不同领域的专家
+    - 系统状态：跟踪规划进度和历史
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个复杂的多智能体系统，
+    包含通信协议、任务协调和结果整合机制。
     """
-    
+
     def __init__(self):
-        # Initialize communication infrastructure
-        self.communication_hub = AgentCommunicationHub()
-        self.decision_engine = AgentDecisionEngine(self.communication_hub)
-        
-        # Initialize all specialized agents
+        """
+        初始化多智能体旅行编排器
+
+        设置通信基础设施、创建所有专业智能体、
+        建立智能体间的连接和协作关系。
+        """
+        # 初始化通信基础设施
+        self.communication_hub = AgentCommunicationHub()    # 通信中心
+        self.decision_engine = AgentDecisionEngine(self.communication_hub)  # 决策引擎
+
+        # 初始化所有专业智能体
         self.agents = {
-            'coordinator': CoordinatorAgent(),
-            'travel_advisor': TravelAdvisorAgent(),
-            'budget_optimizer': BudgetOptimizerAgent(),
-            'weather_analyst': WeatherAnalystAgent(),
-            'local_expert': LocalExpertAgent(),
-            'itinerary_planner': ItineraryPlannerAgent()
+            'coordinator': CoordinatorAgent(),          # 协调员智能体
+            'travel_advisor': TravelAdvisorAgent(),     # 旅行顾问智能体
+            'budget_optimizer': BudgetOptimizerAgent(), # 预算优化智能体
+            'weather_analyst': WeatherAnalystAgent(),   # 天气分析智能体
+            'local_expert': LocalExpertAgent(),         # 当地专家智能体
+            'itinerary_planner': ItineraryPlannerAgent() # 行程规划智能体
         }
-        
-        # Register all agents with communication hub
+
+        # 将所有智能体注册到通信中心
         for agent in self.agents.values():
             self.communication_hub.register_agent(agent)
-        
-        # Connect all agents for collaboration
+
+        # 连接所有智能体以实现协作
         self.communication_hub.connect_all_agents()
-        
-        # Initialize system status
-        self.system_status = 'initialized'
-        self.current_trip_context = {}
-        self.planning_history = []
+
+        # 初始化系统状态
+        self.system_status = 'initialized'      # 系统状态
+        self.current_trip_context = {}          # 当前旅行上下文
+        self.planning_history = []              # 规划历史记录
     
     def plan_comprehensive_trip(self, user_input: Dict[str, Any]) -> Dict[str, Any]:
         """

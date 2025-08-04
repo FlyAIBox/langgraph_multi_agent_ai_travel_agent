@@ -1,4 +1,18 @@
-# Attractions, restaurants, activities
+"""
+景点、餐厅和活动查找模块
+
+这个模块负责查找和推荐旅行相关的各种场所和活动，包括：
+- 旅游景点发现和评估
+- 餐厅推荐和筛选
+- 娱乐活动搜索
+- 价格估算和预算匹配
+- Google Places API集成和模拟数据回退
+
+适用于大模型技术初级用户：
+这个模块展示了如何与外部API集成，处理不同类型的数据，
+以及如何根据用户预算和偏好进行智能推荐。
+"""
+
 import requests
 import json
 from typing import List, Dict, Any, Optional
@@ -8,46 +22,92 @@ from ..config.api_config import api_config
 from ..config.app_config import app_config
 
 class AttractionFinder:
-    """Service for finding attractions, restaurants, and activities"""
-    
+    """
+    景点和活动查找服务类
+
+    这个类负责查找和推荐各种旅行相关的场所和活动，包括：
+    1. 旅游景点的搜索和筛选
+    2. 餐厅的发现和推荐
+    3. 娱乐活动的查找
+    4. 基于预算的价格估算
+    5. API集成和数据处理
+
+    主要功能：
+    - Google Places API集成
+    - 智能预算匹配
+    - 多类型场所搜索
+    - 模拟数据回退机制
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个复杂的推荐系统，
+    包含API集成、数据处理和智能筛选功能。
+    """
+
     def __init__(self):
-        self.api_key = api_config.GOOGLE_PLACES_API_KEY
-        self.base_url = api_config.PLACES_BASE_URL
-        self.session = requests.Session()
-        
-        # Price mapping for different budget ranges
+        """
+        初始化景点查找服务
+
+        设置API配置、价格映射和成本估算规则，
+        为各种类型的场所搜索做准备。
+        """
+        # API配置
+        self.api_key = api_config.GOOGLE_PLACES_API_KEY  # Google Places API密钥
+        self.base_url = api_config.PLACES_BASE_URL       # API基础URL
+        self.session = requests.Session()                # HTTP会话对象
+
+        # 不同预算范围的价格映射
         self.budget_price_mapping = {
-            'budget': {'min': 0, 'max': 2, 'multiplier': 0.7},
-            'mid-range': {'min': 1, 'max': 3, 'multiplier': 1.0},
-            'luxury': {'min': 2, 'max': 4, 'multiplier': 1.5}
+            '经济型': {'min': 0, 'max': 2, 'multiplier': 0.7},    # 经济型：价格较低
+            '中等预算': {'min': 1, 'max': 3, 'multiplier': 1.0},   # 中等：标准价格
+            '豪华型': {'min': 2, 'max': 4, 'multiplier': 1.5}     # 豪华：价格较高
         }
-        
-        # Cost estimates for different types (base costs in USD)
+
+        # 不同类型场所的成本估算（基础费用，人民币）
         self.cost_estimates = {
-            'attraction': {'budget': 15, 'mid-range': 25, 'luxury': 45},
-            'restaurant': {'budget': 20, 'mid-range': 40, 'luxury': 80},
-            'activity': {'budget': 30, 'mid-range': 60, 'luxury': 120}
+            'attraction': {'经济型': 100, '中等预算': 180, '豪华型': 320},  # 景点门票
+            'restaurant': {'经济型': 150, '中等预算': 280, '豪华型': 560}, # 餐厅用餐
+            'activity': {'经济型': 200, '中等预算': 420, '豪华型': 840}   # 娱乐活动
         }
     
     def find_attractions(self, trip_details: Dict[str, Any]) -> List[Attraction]:
-        """Find tourist attractions based on trip details"""
+        """
+        根据旅行详情查找旅游景点
+
+        这个方法负责搜索和推荐适合的旅游景点，包括：
+        1. 使用Google Places API搜索实际景点
+        2. 根据用户预算和偏好筛选
+        3. 提供模拟数据作为回退方案
+        4. 返回排序后的景点列表
+
+        参数：
+        - trip_details: 包含目的地、预算等信息的旅行详情字典
+
+        返回：Attraction对象列表，按推荐度排序
+
+        功能说明：
+        1. 构建搜索查询
+        2. 尝试API调用获取真实数据
+        3. 处理和筛选搜索结果
+        4. 回退到模拟数据（如果需要）
+        """
         try:
             attractions = []
-            query = f"tourist attractions in {trip_details['destination']}"
-            
-            # Try API call first
+            query = f"{trip_details['destination']} 旅游景点"  # 中文搜索查询
+
+            # 首先尝试API调用
             if self.api_key:
                 places_data = self._search_places(query, 'tourist_attraction')
                 attractions = self._process_places_data(places_data, 'attraction', trip_details)
-            
-            # Fallback to mock data if API fails or no key
+
+            # 如果API失败或无密钥，回退到模拟数据
             if not attractions:
                 attractions = self._get_mock_attractions(trip_details)
-            
+
+            # 返回限定数量的景点
             return attractions[:app_config.MAX_ATTRACTIONS]
-            
+
         except Exception as e:
-            print(f"Error finding attractions: {e}")
+            print(f"查找景点时出错: {e}")
             return self._get_mock_attractions(trip_details)
     
     def find_restaurants(self, trip_details: Dict[str, Any]) -> List[Attraction]:

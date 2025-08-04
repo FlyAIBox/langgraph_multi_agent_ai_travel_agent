@@ -1,4 +1,18 @@
-# Currency conversion logic
+"""
+货币转换逻辑模块
+
+这个模块负责处理货币转换和汇率管理，包括：
+- 实时汇率获取和缓存
+- 多种货币间的转换计算
+- 费用明细的货币转换
+- 汇率API集成和回退机制
+- 货币符号和格式化处理
+
+适用于大模型技术初级用户：
+这个模块展示了如何处理金融数据，包括API集成、
+数据缓存、错误处理和用户友好的货币显示。
+"""
+
 import requests
 import json
 from typing import Dict, Any, Optional, List
@@ -6,48 +20,94 @@ from datetime import datetime, timedelta
 from ..config.api_config import api_config
 
 class CurrencyConverter:
-    """Service for currency conversion and exchange rate management"""
-    
+    """
+    货币转换和汇率管理服务类
+
+    这个类负责处理所有与货币相关的操作，包括：
+    1. 实时汇率获取和管理
+    2. 多种货币间的精确转换
+    3. 旅行费用的货币转换
+    4. 汇率缓存和性能优化
+    5. 回退汇率和错误处理
+
+    主要功能：
+    - Exchange Rate API集成
+    - 智能缓存机制
+    - 多货币支持
+    - 费用明细转换
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个健壮的金融数据处理系统，
+    包含API集成、缓存策略和错误恢复机制。
+    """
+
     def __init__(self):
-        self.api_key = api_config.EXCHANGERATE_API_KEY
-        self.base_url = api_config.EXCHANGE_RATE_URL
-        self.session = requests.Session()
-        
-        # Cache for exchange rates (to avoid frequent API calls)
-        self.rate_cache = {}
-        self.cache_timestamp = None
-        self.cache_duration = timedelta(hours=1)  # Cache for 1 hour
-        
-        # Fallback exchange rates (approximate, updated periodically)
+        """
+        初始化货币转换服务
+
+        设置API配置、汇率缓存、回退汇率和货币符号，
+        为各种货币转换操作做准备。
+        """
+        # API配置
+        self.api_key = api_config.EXCHANGERATE_API_KEY  # 汇率API密钥
+        self.base_url = api_config.EXCHANGE_RATE_URL    # API基础URL
+        self.session = requests.Session()               # HTTP会话对象
+
+        # 汇率缓存（避免频繁API调用）
+        self.rate_cache = {}                           # 汇率缓存字典
+        self.cache_timestamp = None                    # 缓存时间戳
+        self.cache_duration = timedelta(hours=1)       # 缓存有效期：1小时
+
+        # 回退汇率（近似值，定期更新）
         self.fallback_rates = {
-            'USD': 1.0,  # Base currency
-            'EUR': 0.85,
-            'GBP': 0.73,
-            'INR': 83.12,
-            'JPY': 149.50,
-            'CAD': 1.36,
-            'AUD': 1.52,
-            'CHF': 0.88,
-            'CNY': 7.24,
-            'SGD': 1.34
+            'CNY': 1.0,    # 基础货币改为人民币
+            'USD': 0.14,   # 美元
+            'EUR': 0.12,   # 欧元
+            'GBP': 0.10,   # 英镑
+            'INR': 11.50,  # 印度卢比
+            'JPY': 20.65,  # 日元
+            'CAD': 0.19,   # 加拿大元
+            'AUD': 0.21,   # 澳大利亚元
+            'CHF': 0.12,   # 瑞士法郎
+            'SGD': 0.19    # 新加坡元
         }
-        
-        # Currency symbols
+
+        # 货币符号
         self.currency_symbols = {
-            'USD': '$',
-            'EUR': '€',
-            'GBP': '£',
-            'INR': '₹',
-            'JPY': '¥',
-            'CAD': 'C$',
-            'AUD': 'A$',
-            'CHF': 'CHF',
-            'CNY': '¥',
-            'SGD': 'S$'
+            'CNY': '¥',    # 人民币符号
+            'USD': '$',    # 美元符号
+            'EUR': '€',    # 欧元符号
+            'GBP': '£',    # 英镑符号
+            'INR': '₹',    # 印度卢比符号
+            'JPY': '¥',    # 日元符号
+            'CAD': 'C$',   # 加拿大元符号
+            'AUD': 'A$',   # 澳大利亚元符号
+            'CHF': 'CHF',  # 瑞士法郎符号
+            'SGD': 'S$'    # 新加坡元符号
         }
     
-    def get_exchange_rate(self, from_currency: str = 'USD', to_currency: str = 'USD') -> float:
-        """Get exchange rate between two currencies"""
+    def get_exchange_rate(self, from_currency: str = 'CNY', to_currency: str = 'CNY') -> float:
+        """
+        获取两种货币之间的汇率
+
+        这个方法负责获取实时或缓存的汇率数据，包括：
+        1. 检查缓存中的汇率数据
+        2. 从API获取最新汇率
+        3. 使用回退汇率（如果API失败）
+        4. 计算货币转换比率
+
+        参数：
+        - from_currency: 源货币代码（默认：CNY）
+        - to_currency: 目标货币代码（默认：CNY）
+
+        返回：汇率（浮点数）
+
+        功能说明：
+        1. 相同货币返回1.0
+        2. 检查缓存有效性
+        3. API调用获取实时汇率
+        4. 回退到预设汇率
+        """
         if from_currency == to_currency:
             return 1.0
         

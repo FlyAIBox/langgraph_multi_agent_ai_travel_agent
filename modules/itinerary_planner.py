@@ -1,53 +1,125 @@
-# Itinerary planning logic
+"""
+行程规划逻辑模块
+
+这个模块负责创建详细的逐日行程安排，包括：
+- 景点和活动的时间分配
+- 基于天气的活动推荐
+- 交通方式和时间估算
+- 餐饮安排和时间规划
+- 每日费用计算和优化
+- 个性化行程定制
+
+适用于大模型技术初级用户：
+这个模块展示了如何设计一个智能的行程规划系统，
+包含时间管理、天气适应和个性化推荐算法。
+"""
+
 import random
 from typing import Dict, Any, List
 from datetime import datetime, date, timedelta
 from ..data.models import DayPlan, Weather, Attraction, Transportation
 
 class ItineraryPlanner:
-    """Service for creating detailed day-by-day itineraries"""
-    
+    """
+    行程规划服务类
+
+    这个类负责创建详细的逐日旅行行程，包括：
+    1. 景点和活动的智能分配
+    2. 基于天气的活动调整
+    3. 时间段的合理安排
+    4. 交通方式的选择和估算
+    5. 餐饮时间的规划
+    6. 每日费用的计算
+
+    主要功能：
+    - 智能时间分配
+    - 天气适应性规划
+    - 交通优化
+    - 个性化定制
+
+    适用于大模型技术初级用户：
+    这个类展示了如何构建一个复杂的规划算法，
+    包含多维度的约束条件和优化目标。
+    """
+
     def __init__(self):
-        # Activity timing preferences
+        """
+        初始化行程规划服务
+
+        设置活动时间偏好、天气活动推荐和交通估算，
+        为智能行程规划做准备。
+        """
+        # 活动时间偏好设置
         self.activity_timings = {
-            'morning': {'start': 9, 'end': 12, 'activities': ['museums', 'galleries', 'parks', 'sightseeing']},
-            'afternoon': {'start': 13, 'end': 17, 'activities': ['activities', 'shopping', 'tours', 'attractions']},
-            'evening': {'start': 18, 'end': 21, 'activities': ['dining', 'entertainment', 'nightlife', 'cultural']}
+            'morning': {    # 上午时段
+                'start': 9, 'end': 12,
+                'activities': ['博物馆', '美术馆', '公园', '观光']
+            },
+            'afternoon': {  # 下午时段
+                'start': 13, 'end': 17,
+                'activities': ['活动', '购物', '游览', '景点']
+            },
+            'evening': {    # 晚上时段
+                'start': 18, 'end': 21,
+                'activities': ['用餐', '娱乐', '夜生活', '文化']
+            }
         }
-        
-        # Weather-based activity recommendations
+
+        # 基于天气的活动推荐
         self.weather_activities = {
-            'sunny': ['outdoor tours', 'parks', 'walking tours', 'outdoor activities'],
-            'rainy': ['museums', 'galleries', 'shopping', 'indoor attractions'],
-            'cloudy': ['sightseeing', 'cultural sites', 'mixed activities'],
-            'cold': ['indoor attractions', 'museums', 'warm cafes', 'shopping'],
-            'hot': ['indoor attractions', 'early morning tours', 'evening activities']
+            'sunny': ['户外游览', '公园', '步行游', '户外活动'],      # 晴天
+            'rainy': ['博物馆', '美术馆', '购物', '室内景点'],       # 雨天
+            'cloudy': ['观光', '文化景点', '混合活动'],             # 多云
+            'cold': ['室内景点', '博物馆', '温暖咖啡厅', '购物'],    # 寒冷
+            'hot': ['室内景点', '早晨游览', '晚间活动']              # 炎热
         }
-        
-        # Transportation estimates between activities
+
+        # 活动间交通估算（人民币和时间）
         self.transport_estimates = {
-            'walking': {'cost': 0, 'time': 15},
-            'public_transport': {'cost': 3, 'time': 20},
-            'taxi': {'cost': 12, 'time': 15},
-            'uber': {'cost': 10, 'time': 12}
+            'walking': {'cost': 0, 'time': 15},           # 步行
+            'public_transport': {'cost': 20, 'time': 20}, # 公共交通
+            'taxi': {'cost': 80, 'time': 15},             # 出租车
+            'uber': {'cost': 70, 'time': 12}              # 网约车
         }
     
-    def create_itinerary(self, trip_details: Dict[str, Any], weather_data: List[Weather], 
-                        attractions: List[Attraction], restaurants: List[Attraction], 
+    def create_itinerary(self, trip_details: Dict[str, Any], weather_data: List[Weather],
+                        attractions: List[Attraction], restaurants: List[Attraction],
                         activities: List[Attraction]) -> List[DayPlan]:
-        """Create complete day-by-day itinerary"""
-        
-        total_days = trip_details['total_days']
-        start_date = trip_details['start_date']
-        budget_range = trip_details.get('budget_range', 'mid-range')
-        group_size = trip_details.get('group_size', 1)
-        interests = trip_details.get('preferences', {}).get('interests', [])
-        
-        itinerary = []
-        
-        # Distribute attractions, restaurants, and activities across days
-        daily_attractions = self._distribute_items_across_days(attractions, total_days, 2)
-        daily_restaurants = self._distribute_items_across_days(restaurants, total_days, 2)
+        """
+        创建完整的逐日行程安排
+
+        这个方法是行程规划的核心，它整合所有信息，
+        创建优化的每日行程计划。
+
+        参数：
+        - trip_details: 旅行详情字典
+        - weather_data: 天气预报数据列表
+        - attractions: 景点列表
+        - restaurants: 餐厅列表
+        - activities: 活动列表
+
+        返回：DayPlan对象列表，每个代表一天的行程
+
+        功能说明：
+        1. 提取旅行基本信息
+        2. 将景点、餐厅、活动分配到各天
+        3. 根据天气优化每日安排
+        4. 计算每日费用和交通
+        5. 生成完整的行程计划
+        """
+
+        # 提取基本信息
+        total_days = trip_details['total_days']                           # 总天数
+        start_date = trip_details['start_date']                          # 开始日期
+        budget_range = trip_details.get('budget_range', '中等预算')       # 预算范围
+        group_size = trip_details.get('group_size', 1)                   # 团队人数
+        interests = trip_details.get('preferences', {}).get('interests', [])  # 兴趣爱好
+
+        itinerary = []  # 行程列表
+
+        # 将景点、餐厅和活动分配到各天
+        daily_attractions = self._distribute_items_across_days(attractions, total_days, 2)  # 每天2个景点
+        daily_restaurants = self._distribute_items_across_days(restaurants, total_days, 2)  # 每天2个餐厅
         daily_activities = self._distribute_items_across_days(activities, total_days, 1)
         
         for day_num in range(1, total_days + 1):

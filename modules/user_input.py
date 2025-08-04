@@ -1,53 +1,108 @@
-# Handles user input
+"""
+用户输入处理模块
+
+这个模块负责处理和验证用户输入的旅行规划信息，包括：
+- 目的地选择和验证
+- 日期输入和格式化
+- 预算范围和货币选择
+- 兴趣爱好和偏好设置
+- 特殊要求和额外选项
+
+适用于大模型技术初级用户：
+这个模块展示了如何构建一个健壮的用户输入系统，
+包括数据验证、错误处理和用户友好的交互界面。
+"""
+
 import re
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, Tuple, List, Optional
 
 class UserInputHandler:
-    """Handles and validates user input for trip planning"""
-    
+    """
+    用户输入处理和验证类
+
+    这个类负责收集和验证用户的旅行规划输入，包括：
+    1. 目的地信息收集
+    2. 日期范围验证
+    3. 预算和货币设置
+    4. 个人偏好收集
+    5. 输入数据的完整性检查
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个用户友好的输入系统，
+    包含数据验证、错误处理和智能提示功能。
+    """
+
     def __init__(self):
-        self.valid_currencies = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'SGD']
-        self.budget_ranges = ['budget', 'mid-range', 'luxury']
+        """
+        初始化用户输入处理器
+
+        设置各种预定义的选项列表，包括支持的货币、
+        预算范围、热门目的地和常见兴趣爱好。
+        """
+        # 支持的货币列表（添加人民币为默认）
+        self.valid_currencies = ['CNY', 'USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'CHF', 'SGD']
+
+        # 预算范围选项
+        self.budget_ranges = ['经济型', '中等预算', '豪华型']
+
+        # 热门目的地列表（更新为中国大陆城市为主）
         self.popular_destinations = [
-            'New York', 'London', 'Paris', 'Tokyo', 'Sydney', 'Dubai', 'Singapore',
-            'Barcelona', 'Amsterdam', 'Rome', 'Istanbul', 'Bangkok', 'Mumbai',
-            'Berlin', 'Vienna', 'Prague', 'Lisbon', 'Copenhagen', 'Stockholm'
+            '北京', '上海', '广州', '深圳', '杭州', '成都', '西安', '南京',
+            '苏州', '厦门', '青岛', '大连', '重庆', '天津', '武汉', '长沙',
+            '昆明', '桂林', '三亚', '拉萨', '乌鲁木齐', '哈尔滨', '沈阳'
         ]
+
+        # 常见兴趣爱好列表（中文化）
         self.common_interests = [
-            'museums', 'art', 'history', 'food', 'nightlife', 'shopping', 'nature',
-            'adventure', 'culture', 'architecture', 'photography', 'music', 'sports',
-            'beaches', 'mountains', 'festivals', 'local experiences', 'luxury'
+            '博物馆', '艺术', '历史', '美食', '夜生活', '购物', '自然风光',
+            '冒险活动', '文化体验', '建筑', '摄影', '音乐', '体育',
+            '海滩', '山景', '节庆活动', '当地体验', '奢华享受'
         ]
     
     def get_trip_details(self) -> Dict[str, Any]:
-        """Collect all trip details from user with comprehensive validation"""
-        
-        print("🌍 Welcome to AI Travel Agent & Expense Planner!")
+        """
+        从用户收集所有旅行详情并进行全面验证
+
+        这个方法是用户输入的主要入口点，它：
+        1. 显示欢迎信息和指导
+        2. 逐步收集各种旅行信息
+        3. 验证输入的有效性
+        4. 返回完整的旅行详情字典
+
+        返回：包含所有旅行信息的字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何设计一个用户友好的数据收集流程，
+        通过分步骤的方式降低用户的认知负担。
+        """
+
+        print("🌍 欢迎使用AI旅行助手与费用规划师!")
         print("=" * 60)
-        print("Let's plan your perfect trip! Please provide the following details:")
+        print("让我们规划您的完美旅程！请提供以下详细信息:")
         print("-" * 60)
-        
-        # Get basic trip information
-        destination = self._get_destination()
-        start_date, end_date, total_days = self._get_dates()
-        budget_range = self._get_budget_range()
-        currency = self._get_currency()
-        group_size = self._get_group_size()
-        
-        # Get preferences and special requirements
-        preferences = self._get_preferences()
-        
-        # Get additional options
-        additional_options = self._get_additional_options()
-        
+
+        # 获取基本旅行信息
+        destination = self._get_destination()           # 目的地
+        start_date, end_date, total_days = self._get_dates()  # 日期信息
+        budget_range = self._get_budget_range()         # 预算范围
+        currency = self._get_currency()                 # 货币类型
+        group_size = self._get_group_size()            # 团队人数
+
+        # 获取偏好和特殊要求
+        preferences = self._get_preferences()           # 个人偏好
+
+        # 获取额外选项
+        additional_options = self._get_additional_options()  # 额外选项
+
+        # 构建旅行详情字典
         trip_details = {
-            'destination': destination,
-            'start_date': start_date,
-            'end_date': end_date,
-            'total_days': total_days,
-            'budget_range': budget_range,
-            'currency': currency,
+            'destination': destination,      # 目的地
+            'start_date': start_date,       # 开始日期
+            'end_date': end_date,           # 结束日期
+            'total_days': total_days,       # 总天数
+            'budget_range': budget_range,   # 预算范围
+            'currency': currency,           # 货币类型
             'group_size': group_size,
             'preferences': preferences,
             'additional_options': additional_options,
@@ -57,288 +112,348 @@ class UserInputHandler:
         return trip_details
     
     def _get_destination(self) -> str:
-        """Get and validate destination with suggestions"""
-        print("\n📍 DESTINATION")
-        print("Popular destinations:", ", ".join(self.popular_destinations[:10]))
-        
+        """
+        获取和验证目的地，提供智能建议
+
+        这个方法负责收集用户的目的地信息，包括：
+        1. 显示热门目的地建议
+        2. 验证输入格式的有效性
+        3. 处理不常见目的地的确认
+        4. 返回格式化的目的地名称
+
+        返回：验证后的目的地名称
+        """
+        print("\n📍 目的地选择")
+        print("热门目的地推荐:", ", ".join(self.popular_destinations[:10]))
+
         while True:
-            destination = input("\nEnter your destination city: ").strip()
-            
+            destination = input("\n请输入您的目的地城市: ").strip()
+
             if not destination:
-                print("❌ Please enter a destination.")
+                print("❌ 请输入目的地。")
                 continue
-            
+
             if len(destination) < 2:
-                print("❌ Please enter a valid city name (at least 2 characters).")
+                print("❌ 请输入有效的城市名称（至少2个字符）。")
                 continue
-            
-            # Check for numbers or special characters
-            if not re.match(r'^[a-zA-Z\s\-\'\.]+$', destination):
-                print("❌ Please enter a valid city name (letters, spaces, hyphens, and apostrophes only).")
+
+            # 检查数字或特殊字符（支持中文）
+            if not re.match(r'^[\u4e00-\u9fa5a-zA-Z\s\-\'\.]+$', destination):
+                print("❌ 请输入有效的城市名称（仅支持中文、英文字母、空格、连字符和撇号）。")
                 continue
-            
-            # Capitalize properly
+
+            # 正确格式化
             destination = destination.title()
-            
-            # Confirm unusual destinations
+
+            # 确认不常见的目的地
             if destination not in self.popular_destinations:
-                confirm = input(f"Did you mean '{destination}'? (y/n): ").lower().strip()
-                if confirm not in ['y', 'yes']:
+                confirm = input(f"您是指'{destination}'吗？(y/n): ").lower().strip()
+                if confirm not in ['y', 'yes', '是', '确认']:
                     continue
-            
+
             return destination
     
     def _get_dates(self) -> Tuple[date, date, int]:
-        """Get and validate travel dates with intelligent suggestions"""
-        print("\n📅 TRAVEL DATES")
-        print("Format: YYYY-MM-DD (e.g., 2025-12-25)")
-        
+        """
+        获取和验证旅行日期，提供智能建议
+
+        这个方法负责收集旅行日期信息，包括：
+        1. 获取开始和结束日期
+        2. 验证日期格式和逻辑
+        3. 提供旅行时长建议
+        4. 返回日期和总天数
+
+        返回：开始日期、结束日期和总天数的元组
+        """
+        print("\n📅 旅行日期")
+        print("日期格式: YYYY-MM-DD (例如: 2025-12-25)")
+
         while True:
             try:
-                # Get start date
-                start_input = input("\nEnter start date: ").strip()
+                # 获取开始日期
+                start_input = input("\n请输入开始日期: ").strip()
                 if not start_input:
-                    print("❌ Start date is required.")
+                    print("❌ 开始日期是必需的。")
                     continue
-                
+
                 start_date = datetime.strptime(start_input, "%Y-%m-%d").date()
-                
-                # Validate start date
+
+                # 验证开始日期
                 if start_date < date.today():
-                    print("❌ Start date cannot be in the past.")
+                    print("❌ 开始日期不能是过去的日期。")
                     continue
-                
+
                 if start_date > date.today() + timedelta(days=365):
-                    confirm = input("⚠️  That's quite far in the future. Are you sure? (y/n): ").lower()
-                    if confirm not in ['y', 'yes']:
+                    confirm = input("⚠️  这个日期相当遥远。您确定吗？(y/n): ").lower()
+                    if confirm not in ['y', 'yes', '是', '确认']:
                         continue
-                
-                # Get end date
-                end_input = input("Enter end date: ").strip()
+
+                # 获取结束日期
+                end_input = input("请输入结束日期: ").strip()
                 if not end_input:
-                    print("❌ End date is required.")
+                    print("❌ 结束日期是必需的。")
                     continue
-                
+
                 end_date = datetime.strptime(end_input, "%Y-%m-%d").date()
-                
-                # Validate end date
+
+                # 验证结束日期
                 if end_date <= start_date:
-                    print("❌ End date must be after start date.")
+                    print("❌ 结束日期必须晚于开始日期。")
                     continue
-                
+
                 total_days = (end_date - start_date).days
-                
-                # Validate trip duration
+
+                # 验证旅行时长
                 if total_days > 90:
-                    confirm = input(f"⚠️  That's a {total_days}-day trip! Are you sure? (y/n): ").lower()
-                    if confirm not in ['y', 'yes']:
+                    confirm = input(f"⚠️  这是一个{total_days}天的长途旅行！您确定吗？(y/n): ").lower()
+                    if confirm not in ['y', 'yes', '是', '确认']:
                         continue
-                
-                # Show trip summary
-                print(f"✅ Trip duration: {total_days} days")
-                
-                # Suggest optimal duration
+
+                # 显示旅行摘要
+                print(f"✅ 旅行时长: {total_days}天")
+
+                # 建议最佳时长
                 if total_days < 2:
-                    print("💡 Consider extending to at least 2-3 days for a more fulfilling experience.")
+                    print("💡 建议延长至至少2-3天，以获得更充实的旅行体验。")
                 elif total_days > 14:
-                    print("💡 For trips longer than 2 weeks, consider planning multiple destinations.")
-                
+                    print("💡 对于超过2周的旅行，建议考虑规划多个目的地。")
+
                 return start_date, end_date, total_days
-                
+
             except ValueError:
-                print("❌ Please enter dates in YYYY-MM-DD format (e.g., 2025-12-25).")
+                print("❌ 请按YYYY-MM-DD格式输入日期（例如：2025-12-25）。")
     
     def _get_budget_range(self) -> str:
-        """Get budget preference with detailed explanations"""
-        print("\n💰 BUDGET RANGE")
-        print("Choose your budget category:")
-        print("1. Budget      - Hostels, street food, public transport (~$50-80/day)")
-        print("2. Mid-range   - Hotels, restaurants, mixed transport (~$100-150/day)")
-        print("3. Luxury      - Premium hotels, fine dining, private transport (~$200+/day)")
-        
+        """
+        获取预算偏好，提供详细说明
+
+        这个方法帮助用户选择合适的预算范围，包括：
+        1. 展示不同预算级别的详细说明
+        2. 提供每日费用估算
+        3. 验证用户选择
+        4. 返回标准化的预算范围
+
+        返回：标准化的预算范围字符串
+        """
+        print("\n💰 预算范围")
+        print("请选择您的预算类别:")
+        print("1. 经济型      - 青旅、街边美食、公共交通 (~¥350-560/天)")
+        print("2. 中等预算    - 酒店、餐厅、混合交通 (~¥700-1050/天)")
+        print("3. 豪华型      - 高端酒店、精致餐饮、私人交通 (~¥1400+/天)")
+
         while True:
             try:
-                choice = input("\nSelect budget range (1-3) or type the name: ").strip().lower()
-                
-                if choice in ['1', 'budget']:
-                    print("✅ Budget travel selected - Great for backpackers and cost-conscious travelers!")
-                    return 'budget'
-                elif choice in ['2', 'mid-range', 'mid', 'middle']:
-                    print("✅ Mid-range travel selected - Perfect balance of comfort and value!")
-                    return 'mid-range'
-                elif choice in ['3', 'luxury', 'premium', 'high-end']:
-                    print("✅ Luxury travel selected - Experience the finest accommodations and services!")
-                    return 'luxury'
+                choice = input("\n请选择预算范围 (1-3) 或输入名称: ").strip().lower()
+
+                if choice in ['1', '经济型', 'budget', '经济']:
+                    print("✅ 已选择经济型旅行 - 适合背包客和注重性价比的旅行者！")
+                    return '经济型'
+                elif choice in ['2', '中等预算', 'mid-range', 'mid', 'middle', '中等', '中档']:
+                    print("✅ 已选择中等预算旅行 - 舒适与价值的完美平衡！")
+                    return '中等预算'
+                elif choice in ['3', '豪华型', 'luxury', 'premium', 'high-end', '豪华', '奢华']:
+                    print("✅ 已选择豪华型旅行 - 体验最优质的住宿和服务！")
+                    return '豪华型'
                 else:
-                    print("❌ Please select 1, 2, 3 or type 'budget', 'mid-range', or 'luxury'.")
-                    
+                    print("❌ 请选择1、2、3或输入'经济型'、'中等预算'、'豪华型'。")
+
             except KeyboardInterrupt:
                 raise
             except:
-                print("❌ Please enter a valid selection.")
+                print("❌ 请输入有效的选择。")
     
     def _get_currency(self) -> str:
-        """Get preferred currency with exchange rate info"""
-        print(f"\n💱 CURRENCY")
-        print("Supported currencies:")
-        print("USD (US Dollar)    EUR (Euro)         GBP (British Pound)")
-        print("INR (Indian Rupee) JPY (Japanese Yen) CAD (Canadian Dollar)")
-        print("AUD (Australian $) CHF (Swiss Franc)  CNY (Chinese Yuan)")
-        print("SGD (Singapore $)")
-        
+        """
+        获取首选货币，提供汇率信息
+
+        这个方法帮助用户选择货币类型，包括：
+        1. 显示支持的货币列表
+        2. 设置默认货币为人民币
+        3. 验证货币代码有效性
+        4. 提供汇率转换说明
+
+        返回：标准化的货币代码
+        """
+        print(f"\n💱 货币选择")
+        print("支持的货币:")
+        print("CNY (人民币)       USD (美元)         EUR (欧元)")
+        print("GBP (英镑)         JPY (日元)         CAD (加拿大元)")
+        print("AUD (澳大利亚元)   CHF (瑞士法郎)     SGD (新加坡元)")
+        print("INR (印度卢比)")
+
         while True:
-            currency = input("\nEnter your preferred currency (default: USD): ").upper().strip()
-            
+            currency = input("\n请输入您的首选货币 (默认: CNY): ").upper().strip()
+
             if not currency:
-                print("✅ Using USD as default currency.")
-                return "USD"
-            
+                print("✅ 使用人民币(CNY)作为默认货币。")
+                return "CNY"
+
             if currency in self.valid_currencies:
-                print(f"✅ Currency set to {currency}")
-                if currency != 'USD':
-                    print("💡 All costs will be calculated in USD first, then converted to your currency.")
+                print(f"✅ 货币已设置为 {currency}")
+                if currency != 'CNY':
+                    print("💡 所有费用将首先以人民币计算，然后转换为您选择的货币。")
                 return currency
             else:
-                print(f"❌ '{currency}' is not supported.")
-                print(f"Supported currencies: {', '.join(self.valid_currencies)}")
+                print(f"❌ 不支持货币'{currency}'。")
+                print(f"支持的货币: {', '.join(self.valid_currencies)}")
     
     def _get_group_size(self) -> int:
-        """Get number of travelers with group discounts info"""
-        print("\n👥 GROUP SIZE")
-        
+        """
+        获取旅行者人数，提供团队优惠信息
+
+        这个方法收集团队规模信息，包括：
+        1. 验证人数输入的有效性
+        2. 提供不同团队规模的建议
+        3. 提醒团队优惠和注意事项
+        4. 返回验证后的人数
+
+        返回：旅行者总人数
+        """
+        print("\n👥 团队人数")
+
         while True:
             try:
-                size_input = input("Number of travelers (including yourself): ").strip()
-                
+                size_input = input("旅行者人数 (包括您自己): ").strip()
+
                 if not size_input:
-                    print("❌ Please enter the number of travelers.")
+                    print("❌ 请输入旅行者人数。")
                     continue
-                
+
                 size = int(size_input)
-                
+
                 if size <= 0:
-                    print("❌ Group size must be at least 1.")
+                    print("❌ 团队人数至少为1人。")
                     continue
-                
+
                 if size > 20:
-                    confirm = input(f"⚠️  That's a large group of {size} people. Are you sure? (y/n): ").lower()
-                    if confirm not in ['y', 'yes']:
+                    confirm = input(f"⚠️  这是一个{size}人的大团队。您确定吗？(y/n): ").lower()
+                    if confirm not in ['y', 'yes', '是', '确认']:
                         continue
-                
-                # Provide group-specific advice
+
+                # 提供针对不同团队规模的建议
                 if size == 1:
-                    print("✅ Solo travel - Perfect for flexibility and self-discovery!")
+                    print("✅ 独自旅行 - 完美的灵活性和自我发现之旅！")
                 elif size == 2:
-                    print("✅ Couple/pair travel - Great for romantic getaways or friend trips!")
+                    print("✅ 双人旅行 - 适合情侣度假或朋友出行！")
                 elif size <= 4:
-                    print("✅ Small group - Ideal for family trips or close friends!")
+                    print("✅ 小团队 - 非常适合家庭旅行或密友出游！")
                 elif size <= 8:
-                    print("✅ Medium group - Consider booking group accommodations!")
-                    print("💡 You may qualify for group discounts on activities and tours.")
+                    print("✅ 中等团队 - 建议预订团体住宿！")
+                    print("💡 您可能有资格享受活动和旅游的团体折扣。")
                 else:
-                    print("✅ Large group - Definitely look into group rates and bulk bookings!")
-                    print("💡 Consider splitting into smaller groups for some activities.")
-                
+                    print("✅ 大团队 - 一定要寻找团体价格和批量预订！")
+                    print("💡 建议在某些活动中分成小组进行。")
+
                 return size
-                
+
             except ValueError:
-                print("❌ Please enter a valid number.")
+                print("❌ 请输入有效的数字。")
     
     def _get_preferences(self) -> Dict[str, Any]:
-        """Get detailed user preferences and requirements"""
-        print("\n🎯 TRAVEL PREFERENCES")
-        print("Help us personalize your trip by sharing your interests and requirements.")
-        
+        """
+        获取详细的用户偏好和要求
+
+        这个方法收集用户的个人偏好，包括：
+        1. 兴趣爱好和活动偏好
+        2. 饮食限制和特殊需求
+        3. 行动能力和无障碍需求
+        4. 活动强度和旅行风格
+
+        返回：包含所有偏好信息的字典
+        """
+        print("\n🎯 旅行偏好")
+        print("请分享您的兴趣和要求，帮助我们为您定制个性化的旅行。")
+
         preferences = {}
-        
-        # Interests
-        print(f"\nInterests (comma-separated):")
-        print(f"Examples: {', '.join(self.common_interests[:12])}")
-        interests_input = input("Your interests (press Enter to skip): ").strip()
-        
+
+        # 兴趣爱好
+        print(f"\n兴趣爱好 (用逗号分隔):")
+        print(f"示例: {', '.join(self.common_interests[:12])}")
+        interests_input = input("您的兴趣爱好 (按回车跳过): ").strip()
+
         if interests_input:
-            interests = [interest.strip().lower() for interest in interests_input.split(',')]
-            # Validate and suggest corrections
+            interests = [interest.strip() for interest in interests_input.split(',')]
+            # 验证并建议修正
             valid_interests = []
             for interest in interests:
                 if interest in self.common_interests:
                     valid_interests.append(interest)
                 else:
-                    # Find close matches
+                    # 查找相近匹配
                     suggestions = [ci for ci in self.common_interests if interest in ci or ci in interest]
                     if suggestions:
-                        print(f"💡 Did you mean '{suggestions[0]}' instead of '{interest}'?")
+                        print(f"💡 您是指'{suggestions[0]}'而不是'{interest}'吗？")
                         confirm = input("(y/n): ").lower().strip()
-                        if confirm in ['y', 'yes']:
+                        if confirm in ['y', 'yes', '是', '确认']:
                             valid_interests.append(suggestions[0])
                         else:
-                            valid_interests.append(interest)  # Keep original
+                            valid_interests.append(interest)  # 保留原始输入
                     else:
-                        valid_interests.append(interest)  # Keep original
-            
+                        valid_interests.append(interest)  # 保留原始输入
+
             preferences['interests'] = valid_interests
-            print(f"✅ Interests recorded: {', '.join(valid_interests)}")
+            print(f"✅ 兴趣爱好已记录: {', '.join(valid_interests)}")
         else:
             preferences['interests'] = []
-        
-        # Dietary restrictions
-        dietary = input("\nDietary restrictions/preferences (vegetarian, vegan, halal, etc.): ").strip()
+
+        # 饮食限制
+        dietary = input("\n饮食限制/偏好 (素食、纯素、清真等): ").strip()
         preferences['dietary_restrictions'] = dietary
         if dietary:
-            print(f"✅ Dietary preferences noted: {dietary}")
-        
-        # Mobility considerations
-        mobility = input("Mobility considerations or accessibility needs: ").strip()
+            print(f"✅ 饮食偏好已记录: {dietary}")
+
+        # 行动能力考虑
+        mobility = input("行动能力考虑或无障碍需求: ").strip()
         preferences['mobility'] = mobility
         if mobility:
-            print(f"✅ Accessibility needs noted: {mobility}")
-        
-        # Activity level
-        print("\nPreferred activity level:")
-        print("1. Relaxed - Minimal walking, leisure activities")
-        print("2. Moderate - Some walking, balanced itinerary") 
-        print("3. Active - Lots of walking, adventure activities")
-        
+            print(f"✅ 无障碍需求已记录: {mobility}")
+
+        # 活动强度
+        print("\n首选活动强度:")
+        print("1. 轻松 - 最少步行，休闲活动")
+        print("2. 适中 - 适量步行，平衡行程")
+        print("3. 活跃 - 大量步行，冒险活动")
+
         while True:
-            activity_level = input("Select activity level (1-3): ").strip()
+            activity_level = input("选择活动强度 (1-3): ").strip()
             if activity_level in ['1']:
-                preferences['activity_level'] = 'relaxed'
-                print("✅ Relaxed pace selected - Perfect for a laid-back vacation!")
+                preferences['activity_level'] = '轻松'
+                print("✅ 已选择轻松节奏 - 完美的悠闲假期！")
                 break
             elif activity_level in ['2']:
-                preferences['activity_level'] = 'moderate'
-                print("✅ Moderate pace selected - Good balance of activities and rest!")
+                preferences['activity_level'] = '适中'
+                print("✅ 已选择适中节奏 - 活动与休息的良好平衡！")
                 break
             elif activity_level in ['3']:
-                preferences['activity_level'] = 'active'
-                print("✅ Active pace selected - Adventure awaits!")
+                preferences['activity_level'] = '活跃'
+                print("✅ 已选择活跃节奏 - 冒险等着您！")
                 break
             else:
-                print("❌ Please select 1, 2, or 3.")
-        
-        # Travel style
-        print("\nTravel style:")
-        print("1. Tourist - Popular attractions and experiences")
-        print("2. Explorer - Mix of popular and off-the-beaten-path")
-        print("3. Local - Authentic, local experiences")
-        
+                print("❌ 请选择1、2或3。")
+
+        # 旅行风格
+        print("\n旅行风格:")
+        print("1. 观光客 - 热门景点和体验")
+        print("2. 探索者 - 热门和小众景点的混合")
+        print("3. 当地人 - 真实的当地体验")
+
         while True:
-            travel_style = input("Select travel style (1-3): ").strip()
+            travel_style = input("选择旅行风格 (1-3): ").strip()
             if travel_style in ['1']:
-                preferences['travel_style'] = 'tourist'
-                print("✅ Tourist style - You'll see all the must-visit spots!")
+                preferences['travel_style'] = '观光客'
+                print("✅ 观光客风格 - 您将看到所有必游景点！")
                 break
             elif travel_style in ['2']:
-                preferences['travel_style'] = 'explorer'
-                print("✅ Explorer style - Perfect mix of famous and hidden gems!")
+                preferences['travel_style'] = '探索者'
+                print("✅ 探索者风格 - 著名景点和隐藏宝石的完美结合！")
                 break
             elif travel_style in ['3']:
-                preferences['travel_style'] = 'local'
-                print("✅ Local style - Authentic cultural immersion!")
+                preferences['travel_style'] = '当地人'
+                print("✅ 当地人风格 - 真实的文化沉浸体验！")
                 break
             else:
-                print("❌ Please select 1, 2, or 3.")
-        
+                print("❌ 请选择1、2或3。")
+
         return preferences
     
     def _get_additional_options(self) -> Dict[str, Any]:

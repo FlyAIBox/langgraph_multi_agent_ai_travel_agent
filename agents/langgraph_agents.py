@@ -1,4 +1,22 @@
-# LangGraph Travel Planning Agents
+"""
+LangGraph旅行规划智能体系统
+
+这个模块实现了基于LangGraph框架的多智能体旅行规划系统。
+它使用Google Gemini Flash-2.0作为大语言模型，通过多个专业智能体
+的协作来生成全面的旅行计划。
+
+主要组件：
+1. TravelPlanState - 定义智能体间共享的状态结构
+2. LangGraphTravelAgents - 主要的多智能体系统类
+3. 各种专业智能体方法 - 每个智能体负责特定的规划任务
+
+适用于大模型技术初级用户：
+- LangGraph是一个用于构建多智能体系统的框架
+- StateGraph管理智能体间的状态流转
+- 每个智能体都是一个专门的函数，处理特定的任务
+- 智能体通过共享状态进行通信和协作
+"""
+
 from typing import Dict, Any, List, Optional, TypedDict, Annotated
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -9,8 +27,27 @@ from datetime import datetime
 
 from config.langgraph_config import langgraph_config as config
 
-# Define the state structure for the multi-agent system
+# 定义多智能体系统的状态结构
 class TravelPlanState(TypedDict):
+    """
+    旅行规划状态类
+
+    这个类定义了所有智能体共享的状态结构，包含了
+    旅行规划过程中需要的所有信息。
+
+    属性说明：
+    - messages: 智能体间的消息历史
+    - destination: 目的地
+    - duration: 旅行天数
+    - budget_range: 预算范围
+    - interests: 兴趣爱好列表
+    - group_size: 团队人数
+    - travel_dates: 旅行日期
+    - current_agent: 当前活跃的智能体
+    - agent_outputs: 各智能体的输出结果
+    - final_plan: 最终的旅行计划
+    - iteration_count: 迭代次数
+    """
     messages: Annotated[List[HumanMessage | AIMessage | SystemMessage], add_messages]
     destination: str
     duration: int
@@ -24,76 +61,117 @@ class TravelPlanState(TypedDict):
     iteration_count: int
 
 class LangGraphTravelAgents:
-    """LangGraph-based multi-agent travel planning system"""
-    
+    """
+    基于LangGraph的多智能体旅行规划系统
+
+    这个类是整个多智能体系统的核心，它：
+    1. 初始化Google Gemini大语言模型
+    2. 创建和管理智能体工作流图
+    3. 协调各个专业智能体的工作
+    4. 处理智能体间的状态传递和消息通信
+
+    适用于大模型技术初级用户：
+    这个类展示了如何使用LangGraph框架构建复杂的
+    多智能体系统，每个智能体都有专门的职责。
+    """
+
     def __init__(self):
+        """
+        初始化LangGraph旅行智能体系统
+
+        设置Google Gemini大语言模型和创建智能体工作流图
+        """
+        # 初始化Google Gemini大语言模型
         self.llm = ChatGoogleGenerativeAI(
-            model=config.GEMINI_MODEL,
-            google_api_key=config.GEMINI_API_KEY,
-            temperature=config.TEMPERATURE,
-            max_output_tokens=config.MAX_TOKENS,
-            top_p=config.TOP_P,
+            model=config.GEMINI_MODEL,           # 使用Gemini Flash-2.0模型
+            google_api_key=config.GEMINI_API_KEY, # API密钥
+            temperature=config.TEMPERATURE,      # 控制生成的随机性
+            max_output_tokens=config.MAX_TOKENS, # 最大输出token数
+            top_p=config.TOP_P,                 # 核采样参数
         )
-        
-        # Initialize the graph
+
+        # 初始化智能体工作流图
         self.graph = self._create_agent_graph()
-    
+
     def _create_agent_graph(self) -> StateGraph:
-        """Create the LangGraph multi-agent workflow"""
-        
-        # Define the workflow graph
+        """
+        创建LangGraph多智能体工作流
+
+        这个方法构建了智能体间的工作流程图，定义了：
+        1. 各个智能体节点
+        2. 智能体间的连接关系
+        3. 工作流的执行顺序
+
+        返回：配置好的StateGraph工作流对象
+        """
+
+        # 定义工作流图
         workflow = StateGraph(TravelPlanState)
-        
-        # Add agent nodes
-        workflow.add_node("travel_advisor", self._travel_advisor_agent)
-        workflow.add_node("weather_analyst", self._weather_analyst_agent)
-        workflow.add_node("budget_optimizer", self._budget_optimizer_agent)
-        workflow.add_node("local_expert", self._local_expert_agent)
-        workflow.add_node("itinerary_planner", self._itinerary_planner_agent)
-        workflow.add_node("coordinator", self._coordinator_agent)
-        workflow.add_node("tools", self._tool_executor_node)
-        
-        # Define the workflow edges
-        workflow.set_entry_point("coordinator")
-        
-        # Coordinator decides which agents to call
+
+        # 添加智能体节点
+        workflow.add_node("travel_advisor", self._travel_advisor_agent)    # 旅行顾问
+        workflow.add_node("weather_analyst", self._weather_analyst_agent)  # 天气分析师
+        workflow.add_node("budget_optimizer", self._budget_optimizer_agent) # 预算优化师
+        workflow.add_node("local_expert", self._local_expert_agent)        # 当地专家
+        workflow.add_node("itinerary_planner", self._itinerary_planner_agent) # 行程规划师
+        workflow.add_node("coordinator", self._coordinator_agent)             # 协调员
+        workflow.add_node("tools", self._tool_executor_node)                  # 工具执行器
+
+        # 定义工作流边缘（智能体间的连接）
+        workflow.set_entry_point("coordinator")  # 设置协调员为入口点
+
+        # 协调员决定调用哪些智能体
         workflow.add_conditional_edges(
-            "coordinator",
-            self._coordinator_router,
+            "coordinator",                    # 从协调员开始
+            self._coordinator_router,         # 使用协调员路由器决定下一步
             {
-                "travel_advisor": "travel_advisor",
-                "weather_analyst": "weather_analyst", 
-                "budget_optimizer": "budget_optimizer",
-                "local_expert": "local_expert",
-                "itinerary_planner": "itinerary_planner",
-                "tools": "tools",
-                "end": END
+                "travel_advisor": "travel_advisor",      # 可以转到旅行顾问
+                "weather_analyst": "weather_analyst",    # 可以转到天气分析师
+                "budget_optimizer": "budget_optimizer",  # 可以转到预算优化师
+                "local_expert": "local_expert",          # 可以转到当地专家
+                "itinerary_planner": "itinerary_planner", # 可以转到行程规划师
+                "tools": "tools",                        # 可以转到工具执行器
+                "end": END                               # 可以结束流程
             }
         )
-        
-        # Each agent can either use tools or return to coordinator
+
+        # 每个智能体都可以使用工具或返回协调员
         for agent in ["travel_advisor", "weather_analyst", "budget_optimizer", "local_expert", "itinerary_planner"]:
             workflow.add_conditional_edges(
-                agent,
-                self._agent_router,
+                agent,                        # 从各个智能体
+                self._agent_router,           # 使用智能体路由器决定下一步
                 {
-                    "tools": "tools",
-                    "coordinator": "coordinator",
-                    "end": END
+                    "tools": "tools",         # 可以转到工具执行器
+                    "coordinator": "coordinator", # 可以返回协调员
+                    "end": END               # 可以结束流程
                 }
             )
-        
-        # Tools always return to coordinator
-        workflow.add_edge("tools", "coordinator")
-        
-        return workflow.compile()
-    
-    def _coordinator_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Coordinator agent that orchestrates the multi-agent workflow"""
-        
-        system_prompt = f"""You are the Coordinator Agent for a multi-agent travel planning system.
 
-Your role is to:
+        # 工具执行器总是返回协调员
+        workflow.add_edge("tools", "coordinator")
+
+        # 编译并返回工作流
+        return workflow.compile()
+
+    def _coordinator_agent(self, state: TravelPlanState) -> TravelPlanState:
+        """
+        协调员智能体 - 编排多智能体工作流
+
+        协调员是整个系统的"大脑"，负责：
+        1. 分析当前状态和需求
+        2. 决定下一步需要哪个智能体工作
+        3. 综合各智能体的输出
+        4. 判断是否需要更多信息或可以结束
+
+        参数：
+        - state: 当前的旅行规划状态
+
+        返回：更新后的状态
+        """
+
+        system_prompt = f"""您是多智能体旅行规划系统的协调员智能体。
+
+您的职责是：
 1. Analyze the travel planning request
 2. Determine which specialized agents need to contribute
 3. Coordinate the workflow between agents

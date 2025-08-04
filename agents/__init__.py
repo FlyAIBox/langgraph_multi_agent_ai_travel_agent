@@ -1,5 +1,16 @@
 """
-Base Agent Framework for Multi-Agent Travel Planning System
+多智能体旅行规划系统的基础智能体框架
+
+这个模块定义了传统多智能体系统的核心组件，包括：
+- 智能体角色定义和枚举
+- 消息类型和通信协议
+- 基础智能体抽象类
+- 智能体通信中心
+- 协作决策引擎
+
+适用于大模型技术初级用户：
+这个模块展示了如何设计一个完整的多智能体系统架构，
+包含通信机制、协作模式和决策流程。
 """
 
 import json
@@ -10,34 +21,80 @@ from datetime import datetime
 from enum import Enum
 
 class AgentRole(Enum):
-    """Define different agent roles"""
-    COORDINATOR = "coordinator"
-    TRAVEL_ADVISOR = "travel_advisor"
-    BUDGET_OPTIMIZER = "budget_optimizer"
-    WEATHER_ANALYST = "weather_analyst"
-    LOCAL_EXPERT = "local_expert"
-    ITINERARY_PLANNER = "itinerary_planner"
+    """
+    定义不同的智能体角色
+
+    这个枚举类定义了系统中所有智能体的角色类型，
+    每个角色都有特定的职责和专业领域。
+
+    适用于大模型技术初级用户：
+    枚举类是一种定义常量集合的优雅方式，
+    确保角色名称的一致性和类型安全。
+    """
+    COORDINATOR = "coordinator"           # 协调员：总体协调和决策
+    TRAVEL_ADVISOR = "travel_advisor"     # 旅行顾问：目的地专业知识
+    BUDGET_OPTIMIZER = "budget_optimizer" # 预算优化师：成本控制和优化
+    WEATHER_ANALYST = "weather_analyst"   # 天气分析师：天气情报和建议
+    LOCAL_EXPERT = "local_expert"         # 当地专家：本地知识和文化
+    ITINERARY_PLANNER = "itinerary_planner" # 行程规划师：日程安排和物流
 
 class MessageType(Enum):
-    """Types of messages agents can send"""
-    REQUEST = "request"
-    RESPONSE = "response" 
-    BROADCAST = "broadcast"
-    QUERY = "query"
-    RECOMMENDATION = "recommendation"
+    """
+    智能体可以发送的消息类型
+
+    定义了智能体间通信的不同消息类型，
+    每种类型都有特定的用途和处理方式。
+
+    适用于大模型技术初级用户：
+    通过定义消息类型，系统可以更好地处理
+    不同类型的智能体交互和协作。
+    """
+    REQUEST = "request"               # 请求：向其他智能体请求信息或服务
+    RESPONSE = "response"             # 响应：对请求的回复
+    BROADCAST = "broadcast"           # 广播：向所有智能体发送信息
+    QUERY = "query"                   # 查询：询问特定信息
+    RECOMMENDATION = "recommendation" # 推荐：提供建议或推荐
 
 class Message:
-    """Message structure for agent communication"""
-    def __init__(self, sender: str, receiver: str, msg_type: MessageType, 
+    """
+    智能体通信的消息结构
+
+    这个类定义了智能体间通信的标准消息格式，
+    包含发送者、接收者、消息类型和内容等信息。
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个完整的消息系统，
+    包含元数据管理和序列化功能。
+    """
+
+    def __init__(self, sender: str, receiver: str, msg_type: MessageType,
                  content: Dict[str, Any], timestamp: datetime = None):
-        self.sender = sender
-        self.receiver = receiver
-        self.msg_type = msg_type
-        self.content = content
-        self.timestamp = timestamp or datetime.now()
-        self.id = f"{sender}_{receiver}_{int(time.time() * 1000)}"
+        """
+        初始化消息对象
+
+        参数：
+        - sender: 发送者ID
+        - receiver: 接收者ID
+        - msg_type: 消息类型
+        - content: 消息内容
+        - timestamp: 时间戳（可选）
+        """
+        self.sender = sender                                    # 发送者
+        self.receiver = receiver                                # 接收者
+        self.msg_type = msg_type                               # 消息类型
+        self.content = content                                 # 消息内容
+        self.timestamp = timestamp or datetime.now()          # 时间戳
+        self.id = f"{sender}_{receiver}_{int(time.time() * 1000)}" # 唯一ID
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        将消息转换为字典格式
+
+        用于消息的序列化和存储，
+        便于日志记录和调试。
+
+        返回：消息的字典表示
+        """
         return {
             'id': self.id,
             'sender': self.sender,

@@ -1,50 +1,73 @@
 #!/usr/bin/env python3
 """
-LangGraph System Test - Demonstrates the framework without requiring API keys
+LangGraph系统测试 - 无需API密钥即可演示框架功能
+
+这个测试脚本用于验证LangGraph多智能体系统的完整性，包括：
+- 配置文件加载测试
+- 工具模块导入测试
+- 智能体框架测试
+- 系统架构展示
+
+适用于大模型技术初级用户：
+这个脚本展示了如何为复杂的AI系统编写测试，
+确保所有组件都能正确加载和初始化。
 """
 
 import sys
 import os
 
-# Add current directory to path
+# 将当前目录添加到路径中
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def test_langgraph_imports():
-    """Test all LangGraph imports work correctly"""
-    print("🧪 Testing LangGraph Multi-Agent System Imports")
+    """
+    测试所有LangGraph导入是否正常工作
+
+    这个函数验证系统的各个组件是否能够正确导入，
+    包括配置、工具、智能体和主系统模块。
+
+    返回：测试成功返回True，失败返回False
+
+    功能说明：
+    1. 测试配置文件加载
+    2. 验证工具模块导入
+    3. 检查智能体框架
+    4. 确认主系统可用性
+    """
+    print("🧪 测试LangGraph多智能体系统导入")
     print("=" * 60)
-    
+
     try:
-        print("📝 Testing configuration...")
+        print("📝 测试配置...")
         from config.langgraph_config import langgraph_config
-        print("✅ Configuration loaded")
-        
-        print("🔧 Testing tools...")
+        print("✅ 配置已加载")
+
+        print("🔧 测试工具...")
         from tools.travel_tools import ALL_TOOLS
-        print(f"✅ {len(ALL_TOOLS)} tools loaded")
-        
-        print("🤖 Testing agents...")
+        print(f"✅ {len(ALL_TOOLS)}个工具已加载")
+
+        print("🤖 测试智能体...")
         from agents.langgraph_agents import LangGraphTravelAgents
-        print("✅ LangGraph agents framework loaded")
-        
-        print("🎯 Testing main system...")
-        # We'll import but not run to avoid API key requirement
+        print("✅ LangGraph智能体框架已加载")
+
+        print("🎯 测试主系统...")
+        # 我们只导入不运行，以避免API密钥要求
         import langgraph_main
-        print("✅ Main LangGraph system loaded")
-        
-        print("\n🎉 ALL TESTS PASSED!")
+        print("✅ 主LangGraph系统已加载")
+
+        print("\n🎉 所有测试通过!")
         print("=" * 60)
-        print("✅ LangGraph Multi-Agent System is ready!")
-        print("✅ Framework: LangGraph with state management")
-        print("✅ LLM: Google Gemini Flash-2.0 integration")
-        print("✅ Search: DuckDuckGo real-time search")
-        print("✅ Agents: 6 specialized collaborative agents")
+        print("✅ LangGraph多智能体系统已就绪!")
+        print("✅ 框架: LangGraph状态管理")
+        print("✅ 大语言模型: Google Gemini Flash-2.0集成")
+        print("✅ 搜索: DuckDuckGo实时搜索")
+        print("✅ 智能体: 6个专业协作智能体")
         print("=" * 60)
-        
+
         return True
-        
+
     except Exception as e:
-        print(f"❌ Test failed: {str(e)}")
+        print(f"❌ 测试失败: {str(e)}")
         return False
 
 def show_system_architecture():

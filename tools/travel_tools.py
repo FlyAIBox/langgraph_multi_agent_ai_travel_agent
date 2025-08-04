@@ -1,4 +1,21 @@
-# LangGraph Agent Tools
+"""
+LangGraph智能体工具集
+
+这个模块包含了LangGraph多智能体系统使用的所有搜索工具，包括：
+- 目的地信息搜索
+- 天气信息查询
+- 景点发现
+- 酒店搜索
+- 餐厅查找
+- 当地贴士获取
+- 预算信息分析
+
+适用于大模型技术初级用户：
+这个模块展示了如何为AI智能体创建专门的工具，
+每个工具都有特定的功能和搜索策略，通过DuckDuckGo
+搜索引擎获取实时信息。
+"""
+
 import asyncio
 from typing import List, Dict, Any, Optional
 from langchain_core.tools import tool
@@ -10,42 +27,85 @@ from datetime import datetime
 from config.langgraph_config import langgraph_config as config
 
 class TravelAgentTools:
-    """Collection of tools for the LangGraph travel agents"""
-    
+    """
+    旅行智能体工具集合类
+
+    这个类包含了所有LangGraph旅行智能体使用的工具，
+    每个工具都是一个专门的搜索功能，用于获取特定类型的
+    旅行相关信息。
+
+    主要功能：
+    1. 初始化Google Gemini大语言模型
+    2. 配置DuckDuckGo搜索参数
+    3. 提供7个专业搜索工具
+    4. 格式化搜索结果供智能体使用
+
+    适用于大模型技术初级用户：
+    这个类展示了如何为AI系统创建工具集，
+    每个工具都有明确的职责和标准化的接口。
+    """
+
     def __init__(self):
+        """
+        初始化旅行智能体工具集
+
+        设置Google Gemini大语言模型和搜索配置，
+        为各种搜索工具的使用做准备。
+        """
+        # 初始化Google Gemini大语言模型
         self.llm = ChatGoogleGenerativeAI(
-            model=config.GEMINI_MODEL,
-            google_api_key=config.GEMINI_API_KEY,
-            temperature=config.TEMPERATURE,
-            max_output_tokens=config.MAX_TOKENS,
-            top_p=config.TOP_P,
+            model=config.GEMINI_MODEL,           # 模型名称
+            google_api_key=config.GEMINI_API_KEY, # API密钥
+            temperature=config.TEMPERATURE,      # 生成随机性
+            max_output_tokens=config.MAX_TOKENS, # 最大输出长度
+            top_p=config.TOP_P,                 # 核采样参数
         )
+        # 获取搜索配置
         self.search_config = config.get_search_config()
-    
+
     @tool
     def search_destination_info(query: str) -> str:
-        """Search for destination information using DuckDuckGo"""
+        """
+        使用DuckDuckGo搜索目的地信息
+
+        这个工具专门用于搜索旅行目的地的综合信息，
+        包括景点、旅游指南、文化背景等。
+
+        参数：
+        - query: 搜索查询字符串（目的地名称）
+
+        返回：格式化的搜索结果字符串
+
+        功能说明：
+        1. 构建专门的搜索查询
+        2. 使用DuckDuckGo进行搜索
+        3. 格式化结果供智能体理解
+        4. 处理搜索错误和异常情况
+        """
         try:
+            # 使用DuckDuckGo搜索引擎
             with DDGS() as ddgs:
+                # 构建搜索查询，添加旅游相关关键词
                 results = list(ddgs.text(
-                    query + " travel destination guide attractions",
-                    max_results=config.DUCKDUCKGO_MAX_RESULTS,
-                    region=config.DUCKDUCKGO_REGION,
-                    safesearch=config.DUCKDUCKGO_SAFESEARCH
+                    query + " 旅游目的地指南景点",  # 中文搜索关键词
+                    max_results=config.DUCKDUCKGO_MAX_RESULTS,  # 最大结果数
+                    region=config.DUCKDUCKGO_REGION,            # 搜索区域
+                    safesearch=config.DUCKDUCKGO_SAFESEARCH     # 安全搜索级别
                 ))
-                
+
+                # 检查是否有搜索结果
                 if not results:
-                    return f"No search results found for destination: {query}"
-                
-                # Format results for agent consumption
+                    return f"未找到目的地搜索结果: {query}"
+
+                # 格式化结果供智能体使用
                 formatted_results = []
-                for i, result in enumerate(results[:5], 1):
+                for i, result in enumerate(results[:5], 1):  # 取前5个结果
                     formatted_results.append(
-                        f"{i}. {result.get('title', 'No title')}\n"
-                        f"   {result.get('body', 'No description')}\n"
-                        f"   Source: {result.get('href', 'No URL')}\n"
+                        f"{i}. {result.get('title', '无标题')}\n"
+                        f"   {result.get('body', '无描述')}\n"
+                        f"   来源: {result.get('href', '无URL')}\n"
                     )
-                
+
                 return "\n".join(formatted_results)
         except Exception as e:
             return f"Error searching for destination info: {str(e)}"

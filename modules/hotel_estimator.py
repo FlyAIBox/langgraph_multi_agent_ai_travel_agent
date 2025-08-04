@@ -1,4 +1,19 @@
-# Hotel search and cost estimation
+"""
+酒店搜索和住宿费用估算模块
+
+这个模块负责查找和推荐酒店，以及估算住宿费用，包括：
+- 酒店搜索和筛选
+- 基于预算的价格估算
+- 城市价格系数调整
+- Google Places API集成
+- 模拟酒店数据生成
+- 住宿费用计算和优化
+
+适用于大模型技术初级用户：
+这个模块展示了如何构建一个智能的酒店推荐系统，
+包含价格预测、地区调整和用户偏好匹配。
+"""
+
 import requests
 import json
 from typing import List, Dict, Any, Optional
@@ -7,45 +22,92 @@ from ..data.models import Hotel
 from ..config.api_config import api_config
 
 class HotelEstimator:
-    """Service for finding hotels and estimating accommodation costs"""
-    
+    """
+    酒店查找和住宿费用估算服务类
+
+    这个类负责处理所有与酒店住宿相关的功能，包括：
+    1. 基于目的地的酒店搜索
+    2. 根据预算范围筛选酒店
+    3. 住宿费用的精确估算
+    4. 城市价格差异的调整
+    5. API集成和数据处理
+    6. 模拟数据生成和回退
+
+    主要功能：
+    - Google Places API集成
+    - 智能价格预测
+    - 预算匹配算法
+    - 地区价格调整
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个复杂的推荐系统，
+    包含多维度的数据处理和智能筛选算法。
+    """
+
     def __init__(self):
-        self.api_key = api_config.GOOGLE_PLACES_API_KEY
-        self.base_url = api_config.PLACES_BASE_URL
-        self.session = requests.Session()
-        
-        # Base price ranges by budget category (per night in USD)
+        """
+        初始化酒店估算服务
+
+        设置API配置、价格范围、城市倍数等参数，
+        为酒店搜索和费用估算做准备。
+        """
+        # API配置
+        self.api_key = api_config.GOOGLE_PLACES_API_KEY  # Google Places API密钥
+        self.base_url = api_config.PLACES_BASE_URL       # API基础URL
+        self.session = requests.Session()                # HTTP会话对象
+
+        # 不同预算类别的基础价格范围（每晚，人民币）
         self.budget_price_ranges = {
-            'budget': {'min': 30, 'max': 80, 'avg': 50},
-            'mid-range': {'min': 80, 'max': 200, 'avg': 130},
-            'luxury': {'min': 200, 'max': 500, 'avg': 300}
+            '经济型': {'min': 200, 'max': 560, 'avg': 350},      # 经济型酒店
+            '中等预算': {'min': 560, 'max': 1400, 'avg': 910},   # 中档酒店
+            '豪华型': {'min': 1400, 'max': 3500, 'avg': 2100}   # 豪华酒店
         }
-        
-        # City price multipliers (adjust based on destination cost)
+
+        # 城市价格倍数（根据目的地生活成本调整）
         self.city_multipliers = {
-            'new york': 1.8,
-            'london': 1.6,
-            'paris': 1.5,
-            'tokyo': 1.4,
-            'sydney': 1.3,
-            'dubai': 1.4,
-            'singapore': 1.3,
-            'default': 1.0
+            '北京': 1.6,      # 一线城市，价格较高
+            '上海': 1.7,      # 一线城市，价格最高
+            '广州': 1.4,      # 一线城市
+            '深圳': 1.5,      # 一线城市
+            '杭州': 1.3,      # 新一线城市
+            '成都': 1.2,      # 新一线城市
+            '西安': 1.1,      # 新一线城市
+            '南京': 1.2,      # 新一线城市
+            'default': 1.0    # 默认倍数
         }
     
     def find_hotels(self, trip_details: Dict[str, Any]) -> List[Hotel]:
-        """Find hotels based on trip requirements"""
+        """
+        根据旅行要求查找酒店
+
+        这个方法负责搜索和推荐适合的酒店，包括：
+        1. 使用Google Places API搜索真实酒店
+        2. 根据预算范围筛选合适选项
+        3. 应用城市价格调整
+        4. 提供模拟数据作为回退方案
+
+        参数：
+        - trip_details: 包含目的地、预算等信息的旅行详情字典
+
+        返回：Hotel对象列表，按推荐度排序
+
+        功能说明：
+        1. 提取目的地和预算信息
+        2. 尝试API搜索获取真实酒店数据
+        3. 处理和筛选搜索结果
+        4. 回退到模拟数据（如果需要）
+        """
         try:
             hotels = []
-            destination = trip_details['destination']
-            budget_range = trip_details.get('budget_range', 'mid-range')
-            
-            # Try API search first
+            destination = trip_details['destination']                    # 目的地
+            budget_range = trip_details.get('budget_range', '中等预算')  # 预算范围
+
+            # 首先尝试API搜索
             if self.api_key:
                 hotels_data = self._search_hotels_api(destination)
                 hotels = self._process_hotels_data(hotels_data, trip_details)
-            
-            # Fallback to mock data if API fails
+
+            # 如果API失败，回退到模拟数据
             if not hotels:
                 hotels = self._generate_mock_hotels(trip_details)
             

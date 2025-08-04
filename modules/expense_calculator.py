@@ -1,51 +1,113 @@
-# Total and daily cost calculation
+"""
+总费用和每日成本计算模块
+
+这个模块负责计算旅行的各项费用，包括：
+- 住宿费用计算和分摊
+- 餐饮费用估算
+- 活动和景点费用
+- 交通费用预算
+- 杂项费用估算
+- 总费用汇总和分析
+
+适用于大模型技术初级用户：
+这个模块展示了如何设计一个复杂的费用计算系统，
+包含多种费用类型的处理和预算范围的智能调整。
+"""
+
 from typing import Dict, Any, List
 from ..data.models import Hotel, Attraction, Transportation
 
 class ExpenseCalculator:
-    """Service for calculating total trip expenses"""
-    
+    """
+    旅行费用计算服务类
+
+    这个类负责计算旅行的所有相关费用，包括：
+    1. 住宿费用的计算和优化
+    2. 餐饮费用的估算和分配
+    3. 活动和景点的费用预算
+    4. 交通费用的规划
+    5. 杂项费用的预估
+    6. 总费用的汇总和分析
+
+    主要功能：
+    - 多维度费用计算
+    - 预算范围智能调整
+    - 团队费用分摊
+    - 详细费用分解
+
+    适用于大模型技术初级用户：
+    这个类展示了如何设计一个全面的费用管理系统，
+    包含复杂的计算逻辑和用户友好的费用分析。
+    """
+
     def __init__(self):
-        # Base multipliers for different budget ranges
+        """
+        初始化费用计算服务
+
+        设置不同预算范围的倍数、交通费用估算和杂项费用标准，
+        为各种费用计算做准备。
+        """
+        # 不同预算范围的基础倍数
         self.budget_multipliers = {
-            'budget': 0.8,
-            'mid-range': 1.0,
-            'luxury': 1.5
+            '经济型': 0.8,     # 经济型：费用较低
+            '中等预算': 1.0,   # 中等：标准费用
+            '豪华型': 1.5      # 豪华：费用较高
         }
-        
-        # Transportation cost estimates per day (USD)
+
+        # 每日交通费用估算（人民币）
         self.transportation_costs = {
-            'budget': 15,      # Public transport, walking
-            'mid-range': 35,   # Mix of transport, some taxis
-            'luxury': 60       # Private transport, taxis
+            '经济型': 100,     # 公共交通、步行
+            '中等预算': 250,   # 混合交通、部分出租车
+            '豪华型': 420      # 私人交通、出租车
         }
-        
-        # Miscellaneous daily costs (shopping, tips, etc.)
+
+        # 每日杂项费用（购物、小费等）
         self.miscellaneous_costs = {
-            'budget': 20,
-            'mid-range': 40,
-            'luxury': 80
+            '经济型': 140,     # 基本购物和小费
+            '中等预算': 280,   # 适度购物和娱乐
+            '豪华型': 560      # 高端购物和服务
         }
     
-    def calculate_total_expenses(self, trip_details: Dict[str, Any], hotels: List[Hotel], 
-                               attractions: List[Attraction], restaurants: List[Attraction], 
+    def calculate_total_expenses(self, trip_details: Dict[str, Any], hotels: List[Hotel],
+                               attractions: List[Attraction], restaurants: List[Attraction],
                                activities: List[Attraction]) -> Dict[str, Any]:
-        """Calculate comprehensive trip expenses"""
-        
-        total_days = trip_details['total_days']
-        budget_range = trip_details.get('budget_range', 'mid-range')
-        group_size = trip_details.get('group_size', 1)
-        
-        # Calculate accommodation costs
+        """
+        计算全面的旅行费用
+
+        这个方法是费用计算的核心，它整合所有费用类型，
+        生成详细的费用分解和总结。
+
+        参数：
+        - trip_details: 旅行详情字典
+        - hotels: 酒店列表
+        - attractions: 景点列表
+        - restaurants: 餐厅列表
+        - activities: 活动列表
+
+        返回：包含详细费用分解的字典
+
+        功能说明：
+        1. 提取旅行基本信息
+        2. 计算各类费用
+        3. 汇总总费用
+        4. 生成费用分析报告
+        """
+
+        # 提取基本信息
+        total_days = trip_details['total_days']                        # 总天数
+        budget_range = trip_details.get('budget_range', '中等预算')     # 预算范围
+        group_size = trip_details.get('group_size', 1)                # 团队人数
+
+        # 计算住宿费用
         accommodation_cost = self._calculate_accommodation_cost(hotels, total_days, budget_range)
-        
-        # Calculate food costs
+
+        # 计算餐饮费用
         food_cost = self._calculate_food_cost(restaurants, total_days, group_size, budget_range)
-        
-        # Calculate activities cost
+
+        # 计算活动费用（景点+活动）
         activities_cost = self._calculate_activities_cost(attractions + activities, total_days, group_size, budget_range)
-        
-        # Calculate transportation costs
+
+        # 计算交通费用
         transportation_cost = self._calculate_transportation_cost(total_days, group_size, budget_range)
         
         # Calculate miscellaneous costs

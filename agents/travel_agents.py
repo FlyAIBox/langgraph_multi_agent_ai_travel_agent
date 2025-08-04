@@ -1,5 +1,17 @@
 """
-Specialized Travel Planning Agents
+专业旅行规划智能体
+
+这个模块包含了传统多智能体系统中的所有专业智能体，包括：
+- 旅行顾问智能体：目的地专业知识和文化洞察
+- 预算优化智能体：成本分析和省钱策略
+- 天气分析智能体：天气情报和活动建议
+- 当地专家智能体：内部知识和隐藏宝石
+- 行程规划智能体：日程优化和物流协调
+- 协调员智能体：工作流编排和决策综合
+
+适用于大模型技术初级用户：
+这个模块展示了如何设计专业化的AI智能体，
+每个智能体都有特定的知识领域和能力。
 """
 
 import random
@@ -7,47 +19,66 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
 from . import BaseAgent, AgentRole, Message, MessageType
-# Import data models directly (will work when run from proper context)
+# 直接导入数据模型（在正确的上下文中运行时有效）
 try:
     from ..data.models import Weather, Attraction, Hotel
 except ImportError:
-    # Fallback for direct execution
+    # 直接执行时的回退方案
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     from data.models import Weather, Attraction, Hotel
 
 class TravelAdvisorAgent(BaseAgent):
-    """Expert travel advisor agent with destination knowledge"""
-    
+    """
+    专业旅行顾问智能体
+
+    这个智能体具有丰富的目的地知识，包括：
+    1. 必游景点推荐
+    2. 隐藏宝石发现
+    3. 文化洞察和礼仪指导
+    4. 最佳区域建议
+    5. 交通贴士和实用信息
+
+    适用于大模型技术初级用户：
+    这个类展示了如何为AI智能体构建专业知识库，
+    通过结构化的数据组织来提供专业建议。
+    """
+
     def __init__(self):
+        """
+        初始化旅行顾问智能体
+
+        设置智能体的基本信息和专业能力，
+        初始化目的地知识库。
+        """
         super().__init__(
             agent_id="travel_advisor",
             role=AgentRole.TRAVEL_ADVISOR,
             capabilities=["destination_expertise", "attraction_recommendations", "cultural_insights"]
         )
-        
-        # Initialize destination knowledge
+
+        # 初始化目的地专业知识库（更新为中国大陆城市）
         self.destination_expertise = {
-            'london': {
-                'must_visit': ['British Museum', 'Tower Bridge', 'Big Ben', 'Hyde Park'],
-                'hidden_gems': ['Leadenhall Market', 'Sky Garden', 'Neal\'s Yard'],
-                'cultural_tips': ['Queue etiquette', 'Pub culture', 'Sunday roast tradition'],
-                'best_areas': ['Covent Garden', 'South Bank', 'Notting Hill'],
-                'transport_tips': ['Oyster Card', 'Walking preferred in Zone 1', 'Night Tube weekends']
+            '北京': {
+                'must_visit': ['故宫', '天安门广场', '长城', '天坛'],
+                'hidden_gems': ['南锣鼓巷', '798艺术区', '什刹海', '雍和宫'],
+                'cultural_tips': ['排队礼仪', '茶文化', '京剧欣赏'],
+                'best_areas': ['王府井', '三里屯', '后海', '前门'],
+                'transport_tips': ['地铁一卡通', '市区步行', '共享单车']
             },
-            'paris': {
-                'must_visit': ['Eiffel Tower', 'Louvre', 'Notre-Dame', 'Champs-Élysées'],
-                'hidden_gems': ['Sainte-Chapelle', 'Père Lachaise Cemetery', 'Marché aux Puces'],
-                'cultural_tips': ['Greeting etiquette', 'Dining times', 'Museum passes'],
-                'best_areas': ['Le Marais', 'Saint-Germain', 'Montmartre'],
-                'transport_tips': ['Metro day passes', 'Walking zones', 'Vélib bike sharing']
+            '上海': {
+                'must_visit': ['外滩', '东方明珠', '豫园', '南京路'],
+                'hidden_gems': ['田子坊', '新天地', '1933老场坊', '多伦路'],
+                'cultural_tips': ['海派文化', '小笼包礼仪', '夜生活'],
+                'best_areas': ['淮海路', '徐家汇', '陆家嘴', '静安'],
+                'transport_tips': ['交通卡', '地铁网络', '黄浦江轮渡']
             },
-            'tokyo': {
-                'must_visit': ['Senso-ji Temple', 'Shibuya Crossing', 'Tsukiji Market', 'Imperial Palace'],
-                'hidden_gems': ['Golden Gai', 'Robot Restaurant', 'Omoide Yokocho'],
-                'cultural_tips': ['Bowing etiquette', 'Shoe removal', 'Onsen rules'],
-                'best_areas': ['Shinjuku', 'Harajuku', 'Asakusa'],
+            '广州': {
+                'must_visit': ['广州塔', '陈家祠', '沙面', '白云山'],
+                'hidden_gems': ['红砖厂', '永庆坊', '荔枝湾', '石室圣心大教堂'],
+                'cultural_tips': ['粤语文化', '早茶礼仪', '岭南建筑'],
+                'best_areas': ['天河城', '北京路', '上下九', '珠江新城'],
                 'transport_tips': ['JR Pass', 'IC Cards', 'Rush hour avoidance']
             }
         }

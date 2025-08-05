@@ -71,98 +71,113 @@ def test_langgraph_imports():
         return False
 
 def show_system_architecture():
-    """Show the LangGraph system architecture"""
-    print("\n🏗️ LANGGRAPH SYSTEM ARCHITECTURE")
+    """
+    展示LangGraph系统架构
+
+    这个函数详细展示了LangGraph多智能体系统的
+    技术架构和组件构成。
+    """
+    print("\n🏗️ LANGGRAPH系统架构")
     print("=" * 60)
-    print("📊 Framework Components:")
-    print("   • LangGraph StateGraph for workflow management")
-    print("   • Google Gemini Flash-2.0 for AI interactions")
-    print("   • DuckDuckGo Search for real-time information")
-    print("   • Pydantic for type safety and validation")
-    print("   • Custom agent communication protocols")
-    
-    print("\n🤖 Agent Network:")
+    print("📊 框架组件:")
+    print("   • LangGraph状态图用于工作流管理")
+    print("   • Google Gemini Flash-2.0用于AI交互")
+    print("   • DuckDuckGo搜索用于实时信息获取")
+    print("   • Pydantic用于类型安全和验证")
+    print("   • 自定义智能体通信协议")
+
+    print("\n🤖 智能体网络:")
     agents = [
-        ("Coordinator", "Workflow orchestration & decision synthesis"),
-        ("Travel Advisor", "Destination expertise with live search"),
-        ("Weather Analyst", "Weather intelligence with current data"),
-        ("Budget Optimizer", "Cost analysis with real-time pricing"),
-        ("Local Expert", "Insider knowledge with live local info"),
-        ("Itinerary Planner", "Schedule optimization & logistics")
+        ("协调员", "工作流编排与决策综合"),
+        ("旅行顾问", "目的地专业知识与实时搜索"),
+        ("天气分析师", "天气情报与当前数据"),
+        ("预算优化师", "成本分析与实时定价"),
+        ("当地专家", "内部知识与实时本地信息"),
+        ("行程规划师", "日程优化与物流安排")
     ]
-    
+
     for agent_name, description in agents:
         print(f"   🎯 {agent_name:<17}: {description}")
-    
-    print("\n🔄 Workflow Process:")
+
+    print("\n🔄 工作流程:")
     workflow_steps = [
-        "State initialization with travel requirements",
-        "Coordinator analyzes requirements and assigns tasks",
-        "Agents execute parallel consultations with tool usage",
-        "Real-time search integration for current information", 
-        "Collaborative decision synthesis with consensus building",
-        "Final optimization and validation",
-        "Comprehensive travel plan generation"
+        "使用旅行需求初始化状态",
+        "协调员分析需求并分配任务",
+        "智能体执行并行咨询并使用工具",
+        "实时搜索集成获取当前信息",
+        "协作决策综合与共识构建",
+        "最终优化和验证",
+        "生成综合旅行计划"
     ]
-    
+
     for i, step in enumerate(workflow_steps, 1):
         print(f"   {i}. {step}")
-    
+
     print("=" * 60)
 
 def show_usage_instructions():
-    """Show how to use the LangGraph system"""
-    print("\n📖 USAGE INSTRUCTIONS")
+    """
+    展示如何使用LangGraph系统
+
+    这个函数提供详细的使用说明，包括环境设置、
+    运行方式和主要功能介绍。
+    """
+    print("\n📖 使用说明")
     print("=" * 60)
-    print("🔧 Setup Requirements:")
-    print("   1. Set GEMINI_API_KEY in .env file")
-    print("   2. Get key from: https://makersuite.google.com/app/apikey")
-    print("   3. Copy .env.example to .env and add your key")
-    
-    print("\n🚀 Running the System:")
-    print("   • Direct LangGraph: python langgraph_main.py")
-    print("   • Main menu: python main.py (select option 3)")
-    print("   • Demo mode: Choose option 1 in langgraph_main.py")
-    print("   • Interactive: Choose option 2 in langgraph_main.py")
-    
-    print("\n💡 Key Features:")
+    print("🔧 环境设置要求:")
+    print("   1. 在.env文件中设置GEMINI_API_KEY")
+    print("   2. 从以下地址获取密钥: https://makersuite.google.com/app/apikey")
+    print("   3. 复制.env.example为.env并添加您的密钥")
+
+    print("\n🚀 运行系统:")
+    print("   • 直接运行LangGraph: python langgraph_main.py")
+    print("   • 主菜单: python main.py (选择选项3)")
+    print("   • 演示模式: 在langgraph_main.py中选择选项1")
+    print("   • 交互模式: 在langgraph_main.py中选择选项2")
+
+    print("\n💡 主要功能:")
     features = [
-        "Real-time search integration with DuckDuckGo",
-        "Google Gemini Flash-2.0 for advanced AI reasoning",
-        "Multi-agent collaboration with state management",
-        "Tool-augmented agents for live information",
-        "Comprehensive travel planning with validation",
-        "Detailed agent contribution tracking"
+        "与DuckDuckGo的实时搜索集成",
+        "Google Gemini Flash-2.0用于高级AI推理",
+        "带状态管理的多智能体协作",
+        "工具增强的智能体获取实时信息",
+        "带验证的综合旅行规划",
+        "详细的智能体贡献跟踪"
     ]
-    
+
     for feature in features:
         print(f"   • {feature}")
-    
+
     print("=" * 60)
 
 def main():
-    """Main test function"""
+    """
+    主测试函数
+
+    这个函数是测试脚本的入口点，执行完整的
+    系统测试和信息展示流程。
+    """
     try:
-        print("\n🚀 LANGGRAPH MULTI-AGENT TRAVEL SYSTEM TEST")
+        print("\n🚀 LANGGRAPH多智能体旅行系统测试")
         print("=" * 80)
-        
-        # Test imports
+
+        # 测试导入
         if test_langgraph_imports():
             show_system_architecture()
             show_usage_instructions()
-            
-            print("\n🎯 NEXT STEPS:")
-            print("1. Add your GEMINI_API_KEY to .env file")
-            print("2. Run: python langgraph_main.py")
-            print("3. Choose demo or interactive planning")
-            print("4. Experience advanced multi-agent collaboration!")
-            
-        print("\n✨ LangGraph Multi-Agent System ready for use!")
-        
+
+            print("\n🎯 下一步操作:")
+            print("1. 将您的GEMINI_API_KEY添加到.env文件")
+            print("2. 运行: python langgraph_main.py")
+            print("3. 选择演示或交互式规划")
+            print("4. 体验高级多智能体协作！")
+
+        print("\n✨ LangGraph多智能体系统已准备就绪！")
+
     except KeyboardInterrupt:
-        print("\n❌ Test interrupted by user")
+        print("\n❌ 测试被用户中断")
     except Exception as e:
-        print(f"\n❌ Test error: {str(e)}")
+        print(f"\n❌ 测试错误: {str(e)}")
 
 if __name__ == "__main__":
     main()

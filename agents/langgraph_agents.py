@@ -172,37 +172,37 @@ class LangGraphTravelAgents:
         system_prompt = f"""您是多智能体旅行规划系统的协调员智能体。
 
 您的职责是：
-1. Analyze the travel planning request
-2. Determine which specialized agents need to contribute
-3. Coordinate the workflow between agents
-4. Synthesize final recommendations
+1. 分析旅行规划请求
+2. 确定需要哪些专业智能体参与
+3. 协调智能体间的工作流程
+4. 综合最终建议
 
-Current request:
-- Destination: {state.get('destination', 'Not specified')}
-- Duration: {state.get('duration', 'Not specified')} days
-- Budget: {state.get('budget_range', 'Not specified')}
-- Interests: {', '.join(state.get('interests', []))}
-- Group size: {state.get('group_size', 1)}
-- Travel dates: {state.get('travel_dates', 'Not specified')}
+当前请求：
+- 目的地: {state.get('destination', '未指定')}
+- 时长: {state.get('duration', '未指定')} 天
+- 预算: {state.get('budget_range', '未指定')}
+- 兴趣: {', '.join(state.get('interests', []))}
+- 团队人数: {state.get('group_size', 1)}
+- 旅行日期: {state.get('travel_dates', '未指定')}
 
-Available agents:
-- travel_advisor: Destination expertise and attraction recommendations
-- weather_analyst: Weather forecasting and activity planning
-- budget_optimizer: Cost analysis and money-saving strategies
-- local_expert: Local insights and cultural tips
-- itinerary_planner: Schedule optimization and logistics
+可用智能体：
+- travel_advisor: 目的地专业知识和景点推荐
+- weather_analyst: 天气预报和活动规划
+- budget_optimizer: 成本分析和省钱策略
+- local_expert: 本地洞察和文化贴士
+- itinerary_planner: 日程优化和物流安排
 
-Agent outputs so far: {json.dumps(state.get('agent_outputs', {}), indent=2)}
+目前智能体输出: {json.dumps(state.get('agent_outputs', {}), indent=2)}
 
-Based on the current state, decide what to do next:
-1. If you need more information, specify which agent should work next
-2. If you have enough information from all relevant agents, synthesize the final plan
-3. Respond with either an agent name or 'FINAL_PLAN' if ready to conclude
+根据当前状态，决定下一步行动：
+1. 如果需要更多信息，指定下一个应该工作的智能体
+2. 如果从所有相关智能体获得了足够信息，综合最终计划
+3. 回应智能体名称或'FINAL_PLAN'（如果准备结束）
 
-Your response should be either:
-- Agent name to call next (travel_advisor, weather_analyst, budget_optimizer, local_expert, itinerary_planner)
-- 'FINAL_PLAN' if ready to create the comprehensive travel plan
-- 'SEARCH' if you need to search for information first
+您的响应应该是以下之一：
+- 下一个要调用的智能体名称 (travel_advisor, weather_analyst, budget_optimizer, local_expert, itinerary_planner)
+- 'FINAL_PLAN' 如果准备创建综合旅行计划
+- 'SEARCH' 如果需要先搜索信息
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -220,30 +220,35 @@ Your response should be either:
         return new_state
     
     def _travel_advisor_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Travel advisor agent with destination expertise"""
-        
-        system_prompt = f"""You are the Travel Advisor Agent, specialized in destination expertise and recommendations.
+        """
+        旅行顾问智能体，具有目的地专业知识
 
-Your expertise includes:
-- Destination knowledge and highlights
-- Attraction recommendations
-- Cultural insights and tips
-- Best practices for travelers
+        这个智能体专门负责提供目的地相关的专业建议，
+        包括景点推荐、文化洞察和旅行最佳实践。
+        """
 
-Current planning request:
-- Destination: {state.get('destination')}
-- Duration: {state.get('duration')} days
-- Interests: {', '.join(state.get('interests', []))}
-- Group size: {state.get('group_size')}
+        system_prompt = f"""您是旅行顾问智能体，专门从事目的地专业知识和推荐服务。
 
-Your task: Provide comprehensive destination advice including:
-1. Top attractions and must-see places
-2. Cultural insights and etiquette tips
-3. Best areas to stay and explore
-4. Activity recommendations based on interests
+您的专业领域包括：
+- 目的地知识和亮点
+- 景点推荐
+- 文化洞察和贴士
+- 旅行者最佳实践
 
-If you need to search for current information about the destination, respond with 'NEED_SEARCH: [search query]'
-Otherwise, provide your expert recommendations based on your knowledge.
+当前规划请求：
+- 目的地: {state.get('destination')}
+- 时长: {state.get('duration')} 天
+- 兴趣: {', '.join(state.get('interests', []))}
+- 团队人数: {state.get('group_size')}
+
+您的任务：提供全面的目的地建议，包括：
+1. 顶级景点和必游之地
+2. 文化洞察和礼仪贴士
+3. 最佳住宿和探索区域
+4. 基于兴趣的活动推荐
+
+如果您需要搜索关于目的地的当前信息，请回复 'NEED_SEARCH: [搜索查询]'
+否则，请基于您的知识提供专家建议。
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -268,30 +273,35 @@ Otherwise, provide your expert recommendations based on your knowledge.
         return new_state
     
     def _weather_analyst_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Weather analyst agent for climate and weather planning"""
-        
-        system_prompt = f"""You are the Weather Analyst Agent, specialized in weather intelligence and climate-aware planning.
+        """
+        天气分析师智能体，专门进行气候和天气规划
 
-Your expertise includes:
-- Weather pattern analysis
-- Seasonal travel recommendations
-- Activity planning based on weather conditions
-- Climate considerations for destinations
+        这个智能体专门负责天气情报分析和基于气候的
+        活动规划建议。
+        """
 
-Current planning request:
-- Destination: {state.get('destination')}
-- Travel dates: {state.get('travel_dates')}
-- Duration: {state.get('duration')} days
-- Planned activities: {', '.join(state.get('interests', []))}
+        system_prompt = f"""您是天气分析师智能体，专门从事天气情报和气候感知规划。
 
-Your task: Provide weather-intelligent recommendations including:
-1. Expected weather conditions during travel dates
-2. Best times of day for outdoor activities
-3. Weather-appropriate activity suggestions
-4. Packing recommendations based on climate
+您的专业领域包括：
+- 天气模式分析
+- 季节性旅行推荐
+- 基于天气条件的活动规划
+- 目的地气候考虑因素
 
-If you need current weather data, respond with 'NEED_SEARCH: [weather search query]'
-Otherwise, provide your analysis based on climate knowledge.
+当前规划请求：
+- 目的地: {state.get('destination')}
+- 旅行日期: {state.get('travel_dates')}
+- 时长: {state.get('duration')} 天
+- 计划活动: {', '.join(state.get('interests', []))}
+
+您的任务：提供天气智能推荐，包括：
+1. 旅行日期期间的预期天气条件
+2. 户外活动的最佳时间段
+3. 适合天气的活动建议
+4. 基于气候的打包建议
+
+如果您需要当前天气数据，请回复 'NEED_SEARCH: [天气搜索查询]'
+否则，请基于气候知识提供您的分析。
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -316,30 +326,35 @@ Otherwise, provide your analysis based on climate knowledge.
         return new_state
     
     def _budget_optimizer_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Budget optimizer agent for cost analysis and optimization"""
-        
-        system_prompt = f"""You are the Budget Optimizer Agent, specialized in cost analysis and money-saving strategies.
+        """
+        预算优化师智能体，专门进行成本分析和优化
 
-Your expertise includes:
-- Travel cost analysis and budgeting
-- Money-saving tips and strategies
-- Budget allocation recommendations
-- Cost-effective alternatives
+        这个智能体专门负责旅行预算的分析和优化，
+        提供省钱策略和成本效益建议。
+        """
 
-Current planning request:
-- Destination: {state.get('destination')}
-- Duration: {state.get('duration')} days
-- Budget range: {state.get('budget_range')}
-- Group size: {state.get('group_size')}
+        system_prompt = f"""您是预算优化师智能体，专门从事成本分析和省钱策略。
 
-Your task: Provide budget optimization recommendations including:
-1. Estimated daily and total costs
-2. Budget breakdown by category (accommodation, food, activities, transport)
-3. Money-saving tips and strategies
-4. Cost-effective alternatives for expensive activities
+您的专业领域包括：
+- 旅行成本分析和预算制定
+- 省钱贴士和策略
+- 预算分配建议
+- 经济实惠的替代方案
 
-If you need current pricing information, respond with 'NEED_SEARCH: [budget search query]'
-Otherwise, provide your budget analysis and recommendations.
+当前规划请求：
+- 目的地: {state.get('destination')}
+- 时长: {state.get('duration')} 天
+- 预算范围: {state.get('budget_range')}
+- 团队人数: {state.get('group_size')}
+
+您的任务：提供预算优化建议，包括：
+1. 估算每日和总费用
+2. 按类别分解预算（住宿、餐饮、活动、交通）
+3. 省钱贴士和策略
+4. 昂贵活动的经济实惠替代方案
+
+如果您需要当前价格信息，请回复 'NEED_SEARCH: [预算搜索查询]'
+否则，请提供您的预算分析和建议。
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -364,29 +379,34 @@ Otherwise, provide your budget analysis and recommendations.
         return new_state
     
     def _local_expert_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Local expert agent with insider knowledge"""
-        
-        system_prompt = f"""You are the Local Expert Agent, specialized in insider knowledge and local insights.
+        """
+        当地专家智能体，具有内部知识和本地洞察
 
-Your expertise includes:
-- Local customs and cultural nuances
-- Hidden gems and off-the-beaten-path recommendations
-- Local dining and entertainment scene
-- Practical local tips and advice
+        这个智能体专门提供只有当地人才知道的内部信息，
+        包括小众景点、文化习俗和实用贴士。
+        """
 
-Current planning request:
-- Destination: {state.get('destination')}
-- Interests: {', '.join(state.get('interests', []))}
-- Duration: {state.get('duration')} days
+        system_prompt = f"""您是当地专家智能体，专门从事内部知识和本地洞察。
 
-Your task: Provide local expert insights including:
-1. Hidden gems and local favorites
-2. Cultural etiquette and customs
-3. Local dining recommendations
-4. Insider tips for getting around and saving money
+您的专业领域包括：
+- 当地习俗和文化细节
+- 小众景点和小众推荐
+- 本地餐饮和娱乐场所
+- 实用的本地贴士和建议
 
-If you need current local information, respond with 'NEED_SEARCH: [local tips search query]'
-Otherwise, provide your local expertise and insights.
+当前规划请求：
+- 目的地: {state.get('destination')}
+- 兴趣: {', '.join(state.get('interests', []))}
+- 时长: {state.get('duration')} 天
+
+您的任务：提供当地专家洞察，包括：
+1. 小众景点和当地人喜爱的地方
+2. 文化礼仪和习俗
+3. 本地餐饮推荐
+4. 出行和省钱的内部贴士
+
+如果您需要当前本地信息，请回复 'NEED_SEARCH: [本地贴士搜索查询]'
+否则，请提供您的本地专业知识和洞察。
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -411,30 +431,35 @@ Otherwise, provide your local expertise and insights.
         return new_state
     
     def _itinerary_planner_agent(self, state: TravelPlanState) -> TravelPlanState:
-        """Itinerary planner agent for schedule optimization"""
-        
-        system_prompt = f"""You are the Itinerary Planner Agent, specialized in schedule optimization and logistics.
+        """
+        行程规划师智能体，专门进行日程优化和物流安排
 
-Your expertise includes:
-- Daily itinerary planning and optimization
-- Transportation and logistics coordination
-- Time management and scheduling
-- Activity sequencing and routing
+        这个智能体专门负责创建优化的日程安排，
+        协调交通和活动的时间安排。
+        """
 
-Current planning request:
-- Destination: {state.get('destination')}
-- Duration: {state.get('duration')} days
-- Group size: {state.get('group_size')}
-- Available agent insights: {list(state.get('agent_outputs', {}).keys())}
+        system_prompt = f"""您是行程规划师智能体，专门从事日程优化和物流安排。
 
-Your task: Create an optimized itinerary including:
-1. Day-by-day schedule recommendations
-2. Optimal timing for activities
-3. Transportation suggestions between locations
-4. Rest periods and meal breaks
+您的专业领域包括：
+- 每日行程规划和优化
+- 交通和物流协调
+- 时间管理和日程安排
+- 活动排序和路线规划
 
-Consider the recommendations from other agents when creating the itinerary.
-Provide a structured daily plan that maximizes the travel experience.
+当前规划请求：
+- 目的地: {state.get('destination')}
+- 时长: {state.get('duration')} 天
+- 团队人数: {state.get('group_size')}
+- 可用智能体洞察: {list(state.get('agent_outputs', {}).keys())}
+
+您的任务：创建优化的行程安排，包括：
+1. 逐日日程推荐
+2. 活动的最佳时间安排
+3. 地点间的交通建议
+4. 休息时间和用餐安排
+
+在创建行程时请考虑其他智能体的建议。
+提供结构化的每日计划，最大化旅行体验。
 """
         
         messages = [SystemMessage(content=system_prompt)]
@@ -459,140 +484,197 @@ Provide a structured daily plan that maximizes the travel experience.
         return new_state
     
     def _tool_executor_node(self, state: TravelPlanState) -> TravelPlanState:
-        """Execute tools based on agent requests"""
-        
+        """
+        工具执行节点，根据智能体请求执行工具
+
+        这个节点负责解析智能体的工具请求，
+        并执行相应的搜索工具来获取实时信息。
+        """
+
         last_message = state["messages"][-1] if state.get("messages") else None
         if not last_message:
             return state
-        
-        # Check if the last message requests a search
+
+        # 检查最后一条消息是否请求搜索
         content = last_message.content
         if "NEED_SEARCH:" in content:
             search_query = content.split("NEED_SEARCH:")[-1].strip()
-            
-            # Determine which tool to use based on the current agent and query
+
+            # 根据当前智能体和查询确定使用哪个工具
             current_agent = state.get("current_agent", "")
             
             try:
-                if "weather" in search_query.lower() or current_agent == "weather_analyst":
+                # 智能工具选择：根据查询内容和当前智能体选择最合适的搜索工具
+                if "weather" in search_query.lower() or "天气" in search_query or current_agent == "weather_analyst":
+                    # 天气相关查询：使用天气信息搜索工具
                     from tools.travel_tools import search_weather_info
                     tool_result = search_weather_info.invoke({
-                        "destination": state.get("destination", ""), 
+                        "destination": state.get("destination", ""),
                         "dates": state.get("travel_dates", "")
                     })
-                elif "attraction" in search_query.lower() or "activity" in search_query.lower():
+                elif "attraction" in search_query.lower() or "activity" in search_query.lower() or "景点" in search_query or "活动" in search_query:
+                    # 景点活动查询：使用景点搜索工具
                     from tools.travel_tools import search_attractions
                     tool_result = search_attractions.invoke({
-                        "destination": state.get("destination", ""), 
+                        "destination": state.get("destination", ""),
                         "interests": " ".join(state.get("interests", []))
                     })
-                elif "budget" in search_query.lower() or "cost" in search_query.lower():
+                elif "budget" in search_query.lower() or "cost" in search_query.lower() or "预算" in search_query or "费用" in search_query:
+                    # 预算费用查询：使用预算信息搜索工具
                     from tools.travel_tools import search_budget_info
                     tool_result = search_budget_info.invoke({
-                        "destination": state.get("destination", ""), 
+                        "destination": state.get("destination", ""),
                         "duration": str(state.get("duration", ""))
                     })
-                elif "hotel" in search_query.lower() or "accommodation" in search_query.lower():
+                elif "hotel" in search_query.lower() or "accommodation" in search_query.lower() or "酒店" in search_query or "住宿" in search_query:
+                    # 住宿查询：使用酒店搜索工具
                     from tools.travel_tools import search_hotels
                     tool_result = search_hotels.invoke({
-                        "destination": state.get("destination", ""), 
+                        "destination": state.get("destination", ""),
                         "budget": state.get("budget_range", "mid-range")
                     })
-                elif "restaurant" in search_query.lower() or "food" in search_query.lower():
+                elif "restaurant" in search_query.lower() or "food" in search_query.lower() or "餐厅" in search_query or "美食" in search_query:
+                    # 餐饮查询：使用餐厅搜索工具
                     from tools.travel_tools import search_restaurants
                     tool_result = search_restaurants.invoke({
                         "destination": state.get("destination", "")
                     })
-                elif "local" in search_query.lower() or "tip" in search_query.lower():
+                elif "local" in search_query.lower() or "tip" in search_query.lower() or "本地" in search_query or "贴士" in search_query:
+                    # 本地贴士查询：使用本地贴士搜索工具
                     from tools.travel_tools import search_local_tips
                     tool_result = search_local_tips.invoke({
                         "destination": state.get("destination", "")
                     })
                 else:
-                    # Default to destination info search
+                    # 默认选择：使用目的地信息搜索工具
                     from tools.travel_tools import search_destination_info
                     tool_result = search_destination_info.invoke({
                         "query": state.get("destination", "")
                     })
-                
-                # Add tool result to messages
-                tool_message = AIMessage(content=f"Search results: {tool_result}")
+
+                # 将工具执行结果添加到消息历史中
+                tool_message = AIMessage(content=f"搜索结果: {tool_result}")
                 new_state = state.copy()
                 new_state["messages"] = state.get("messages", []) + [tool_message]
                 return new_state
-                
+
             except Exception as e:
-                # Add error message if tool execution fails
-                error_message = AIMessage(content=f"Tool execution error: {str(e)}")
+                # 工具执行失败时添加错误消息
+                error_message = AIMessage(content=f"工具执行错误: {str(e)}")
                 new_state = state.copy()
                 new_state["messages"] = state.get("messages", []) + [error_message]
                 return new_state
-        
+
         return state
-    
+
     def _coordinator_router(self, state: TravelPlanState) -> str:
-        """Route from coordinator to appropriate next step"""
-        
+        """
+        协调员路由器：从协调员决定下一步流程
+
+        这个方法分析协调员的输出，决定下一步应该调用哪个智能体
+        或执行哪个操作。这是LangGraph工作流的核心路由逻辑。
+
+        参数：
+        - state: 当前的旅行规划状态
+
+        返回：下一个要执行的节点名称
+
+        适用于大模型技术初级用户：
+        这个路由器展示了如何在复杂的AI系统中实现智能决策，
+        根据上下文动态选择下一步的执行路径。
+        """
+
         last_message = state.get("messages", [])[-1] if state.get("messages") else None
         if not last_message:
             return "end"
-        
+
         content = last_message.content.lower()
-        
-        # Check if coordinator wants to search
-        if "search" in content or "need_search" in content:
+
+        # 路由决策逻辑：根据协调员的输出内容决定下一步行动
+
+        # 检查协调员是否需要搜索工具
+        if "search" in content or "need_search" in content or "搜索" in content:
             return "tools"
-        
-        # Check if coordinator is requesting a specific agent
-        if "travel_advisor" in content:
+
+        # 检查协调员是否请求特定的智能体
+        if "travel_advisor" in content or "旅行顾问" in content:
             return "travel_advisor"
-        elif "weather_analyst" in content:
+        elif "weather_analyst" in content or "天气分析师" in content:
             return "weather_analyst"
-        elif "budget_optimizer" in content:
+        elif "budget_optimizer" in content or "预算优化师" in content:
             return "budget_optimizer"
-        elif "local_expert" in content:
+        elif "local_expert" in content or "当地专家" in content:
             return "local_expert"
-        elif "itinerary_planner" in content:
+        elif "itinerary_planner" in content or "行程规划师" in content:
             return "itinerary_planner"
-        elif "final_plan" in content:
+        elif "final_plan" in content or "最终计划" in content:
             return "end"
-        
-        # Default: check which agents haven't contributed yet
+
+        # 默认策略：检查哪些智能体还没有参与工作
         agent_outputs = state.get("agent_outputs", {})
         required_agents = ["travel_advisor", "weather_analyst", "budget_optimizer", "local_expert", "itinerary_planner"]
-        
+
+        # 按优先级顺序调用尚未参与的智能体
         for agent in required_agents:
             if agent not in agent_outputs:
                 return agent
-        
-        # If all agents have contributed, end
+
+        # 如果所有智能体都已参与，结束流程
         return "end"
     
     def _agent_router(self, state: TravelPlanState) -> str:
-        """Route from agents to next step"""
-        
+        """
+        智能体路由器：从智能体决定下一步流程
+
+        这个方法处理各个专业智能体完成工作后的路由决策，
+        决定是返回协调员还是执行工具搜索。
+
+        参数：
+        - state: 当前的旅行规划状态
+
+        返回：下一个要执行的节点名称
+
+        适用于大模型技术初级用户：
+        这展示了多智能体系统中的反馈循环机制，
+        智能体可以请求更多信息或将控制权交还给协调员。
+        """
+
         last_message = state.get("messages", [])[-1] if state.get("messages") else None
         if not last_message:
             return "coordinator"
-        
+
         content = last_message.content
-        
-        # Check if agent needs to search
+
+        # 检查智能体是否需要搜索更多信息
         if "NEED_SEARCH:" in content:
             return "tools"
-        
-        # Otherwise return to coordinator
+
+        # 否则返回协调员进行下一步决策
         return "coordinator"
     
     def run_travel_planning(self, travel_request: Dict[str, Any]) -> Dict[str, Any]:
-        """Run the complete multi-agent travel planning workflow"""
-        
-        # Initialize state
+        """
+        运行完整的多智能体旅行规划工作流
+
+        这是整个LangGraph多智能体系统的主入口方法，
+        它初始化状态、执行工作流并返回最终的旅行计划。
+
+        参数：
+        - travel_request: 包含旅行需求的字典
+
+        返回：包含旅行计划和执行结果的字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何将复杂的AI系统封装成简单的API，
+        用户只需提供需求，系统就能自动协调多个智能体完成规划。
+        """
+
+        # 初始化系统状态
         initial_state = TravelPlanState(
-            messages=[HumanMessage(content=f"Plan a trip with these requirements: {json.dumps(travel_request)}")],
+            messages=[HumanMessage(content=f"根据以下需求规划旅行: {json.dumps(travel_request, ensure_ascii=False)}")],
             destination=travel_request.get("destination", ""),
             duration=travel_request.get("duration", 3),
-            budget_range=travel_request.get("budget_range", "mid-range"),
+            budget_range=travel_request.get("budget_range", "中等预算"),
             interests=travel_request.get("interests", []),
             group_size=travel_request.get("group_size", 1),
             travel_dates=travel_request.get("travel_dates", ""),
@@ -601,66 +683,92 @@ Provide a structured daily plan that maximizes the travel experience.
             final_plan={},
             iteration_count=0
         )
-        
-        # Run the workflow
+
+        # 执行多智能体工作流
         try:
+            # 调用LangGraph工作流图，开始多智能体协作
             final_state = self.graph.invoke(initial_state)
-            
-            # Compile final travel plan
+
+            # 编译最终的旅行计划
             final_plan = self._compile_final_plan(final_state)
-            
+
+            # 返回成功结果
             return {
-                "success": True,
-                "travel_plan": final_plan,
-                "agent_outputs": final_state.get("agent_outputs", {}),
-                "total_iterations": final_state.get("iteration_count", 0),
-                "planning_complete": True
+                "success": True,                                           # 执行成功标志
+                "travel_plan": final_plan,                                # 完整的旅行计划
+                "agent_outputs": final_state.get("agent_outputs", {}),   # 各智能体的输出
+                "total_iterations": final_state.get("iteration_count", 0), # 总迭代次数
+                "planning_complete": True                                  # 规划完成标志
             }
-            
+
         except Exception as e:
+            # 错误处理：返回失败结果和错误信息
             return {
-                "success": False,
-                "error": str(e),
-                "travel_plan": {},
-                "agent_outputs": {},
-                "total_iterations": 0,
-                "planning_complete": False
+                "success": False,                    # 执行失败标志
+                "error": f"规划过程中出现错误: {str(e)}", # 错误信息
+                "travel_plan": {},                   # 空的旅行计划
+                "agent_outputs": {},                 # 空的智能体输出
+                "total_iterations": 0,               # 迭代次数为0
+                "planning_complete": False           # 规划未完成
             }
     
     def _compile_final_plan(self, state: TravelPlanState) -> Dict[str, Any]:
-        """Compile the final travel plan from all agent outputs"""
-        
+        """
+        从所有智能体输出编译最终旅行计划
+
+        这个方法整合所有专业智能体的建议和分析，
+        生成一个完整、结构化的旅行计划。
+
+        参数：
+        - state: 包含所有智能体输出的最终状态
+
+        返回：完整的旅行计划字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何将多个AI智能体的输出
+        整合成一个统一、有用的最终产品。
+        """
+
         agent_outputs = state.get("agent_outputs", {})
-        
+
+        # 构建基础旅行计划结构
         final_plan = {
-            "destination": state.get("destination"),
-            "duration": state.get("duration"),
-            "travel_dates": state.get("travel_dates"),
-            "group_size": state.get("group_size"),
-            "budget_range": state.get("budget_range"),
-            "interests": state.get("interests"),
-            "planning_method": "LangGraph Multi-Agent Collaboration",
-            "agent_contributions": {},
-            "recommendations": {},
-            "summary": "Multi-agent collaborative travel plan generated using LangGraph framework"
+            "destination": state.get("destination"),                      # 目的地
+            "duration": state.get("duration"),                           # 旅行时长
+            "travel_dates": state.get("travel_dates"),                   # 旅行日期
+            "group_size": state.get("group_size"),                       # 团队人数
+            "budget_range": state.get("budget_range"),                   # 预算范围
+            "interests": state.get("interests"),                         # 兴趣爱好
+            "planning_method": "LangGraph多智能体协作",                   # 规划方法
+            "agent_contributions": {},                                    # 智能体贡献
+            "recommendations": {},                                        # 推荐建议
+            "summary": "使用LangGraph框架的多智能体协作生成的旅行计划"      # 计划摘要
         }
-        
-        # Extract key information from each agent
+
+        # 从每个智能体提取关键信息
         for agent_name, output in agent_outputs.items():
-            final_plan["agent_contributions"][agent_name] = {
-                "contribution": output.get("response", ""),
-                "timestamp": output.get("timestamp", ""),
-                "status": output.get("status", "")
+            agent_name_cn = {
+                'travel_advisor': '旅行顾问',
+                'weather_analyst': '天气分析师',
+                'budget_optimizer': '预算优化师',
+                'local_expert': '当地专家',
+                'itinerary_planner': '行程规划师'
+            }.get(agent_name, agent_name)
+
+            final_plan["agent_contributions"][agent_name_cn] = {
+                "contribution": output.get("response", ""),               # 智能体的具体建议
+                "timestamp": output.get("timestamp", ""),                 # 生成时间戳
+                "status": output.get("status", "")                       # 执行状态
             }
-        
-        # Generate summary recommendations
+
+        # 生成总结性推荐
         if agent_outputs:
             final_plan["recommendations"] = {
-                "destination_highlights": "See travel advisor recommendations",
-                "weather_considerations": "Check weather analyst insights",
-                "budget_breakdown": "Review budget optimizer analysis",
-                "local_insights": "Follow local expert tips",
-                "daily_itinerary": "Use itinerary planner schedule"
+                "destination_highlights": "查看旅行顾问推荐",
+                "weather_considerations": "查看天气分析师洞察",
+                "budget_breakdown": "查看预算优化师分析",
+                "local_insights": "遵循当地专家贴士",
+                "daily_itinerary": "使用行程规划师日程"
             }
-        
+
         return final_plan

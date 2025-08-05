@@ -137,80 +137,102 @@ def demonstrate_langgraph_system():
         result = travel_agents.run_travel_planning(sample_request)
 
         if result["success"]:
-            print(f"\n✅ Planning completed successfully!")
-            print(f"   Total iterations: {result['total_iterations']}")
-            print(f"   Agents involved: {len(result['agent_outputs'])}")
-            
-            # Display agent contributions
-            print(f"\n🤖 AGENT CONTRIBUTIONS:")
+            print(f"\n✅ 规划成功完成!")
+            print(f"   总迭代次数: {result['total_iterations']}")
+            print(f"   参与智能体: {len(result['agent_outputs'])}个")
+
+            # 显示智能体贡献
+            print(f"\n🤖 智能体贡献:")
             for agent_name, output in result["agent_outputs"].items():
-                status = output.get("status", "unknown")
+                status = output.get("status", "未知")
                 timestamp = output.get("timestamp", "")
-                print(f"   {agent_name.replace('_', ' ').title():<20}: {status.upper()} ({timestamp[:19]})")
-            
-            # Display final plan summary
+                # 将智能体名称转换为中文显示
+                agent_display_name = {
+                    'coordinator': '协调员',
+                    'travel_advisor': '旅行顾问',
+                    'budget_optimizer': '预算优化师',
+                    'weather_analyst': '天气分析师',
+                    'local_expert': '当地专家',
+                    'itinerary_planner': '行程规划师'
+                }.get(agent_name, agent_name.replace('_', ' ').title())
+
+                print(f"   {agent_display_name:<15}: {status.upper()} ({timestamp[:19]})")
+
+            # 显示最终计划摘要
             travel_plan = result["travel_plan"]
-            print(f"\n📋 TRAVEL PLAN SUMMARY:")
-            print(f"   Destination: {travel_plan.get('destination')}")
-            print(f"   Duration: {travel_plan.get('duration')} days")
-            print(f"   Planning Method: {travel_plan.get('planning_method')}")
-            
-            print(f"\n🎉 DEMONSTRATION COMPLETED SUCCESSFULLY!")
+            print(f"\n📋 旅行计划摘要:")
+            print(f"   目的地: {travel_plan.get('destination')}")
+            print(f"   行程时长: {travel_plan.get('duration')} 天")
+            print(f"   规划方法: {travel_plan.get('planning_method')}")
+
+            print(f"\n🎉 演示成功完成!")
             return True
             
         else:
-            print(f"❌ Planning failed: {result.get('error')}")
+            print(f"❌ 规划失败: {result.get('error')}")
             return False
-            
+
     except Exception as e:
-        print(f"❌ System error: {str(e)}")
+        print(f"❌ 系统错误: {str(e)}")
         return False
 
 def run_interactive_planning():
-    """Run interactive travel planning with user input"""
+    """
+    运行交互式旅行规划
+
+    这个函数处理用户的自定义旅行规划请求，包括：
+    1. 收集用户的详细旅行需求
+    2. 将用户数据转换为LangGraph格式
+    3. 启动多智能体协作规划过程
+    4. 显示和保存规划结果
+
+    适用于大模型技术初级用户：
+    这个函数展示了如何构建完整的用户交互流程，
+    从数据收集到结果展示的全过程。
+    """
     print("\n" + "="*80)
-    print("🎯 INTERACTIVE TRAVEL PLANNING")
+    print("🎯 交互式旅行规划")
     print("="*80)
-    
-    # Get user input
+
+    # 获取用户输入
     input_handler = UserInputHandler()
     user_data = input_handler.get_trip_details()
-    
+
     if not user_data:
-        print("❌ Planning cancelled by user")
+        print("❌ 用户取消了规划")
         return
-    
-    # Convert user data to LangGraph format
+
+    # 将用户数据转换为LangGraph格式
     travel_request = {
         "destination": user_data.get("destination", ""),
-        "duration": user_data.get("duration", 3),
-        "budget_range": user_data.get("budget_range", "mid-range"),
-        "interests": user_data.get("interests", []),
+        "duration": user_data.get("total_days", 3),
+        "budget_range": user_data.get("budget_range", "中等预算"),
+        "interests": user_data.get("preferences", {}).get("interests", []),
         "group_size": user_data.get("group_size", 1),
-        "travel_dates": f"{user_data.get('start_date', '')} to {user_data.get('end_date', '')}"
+        "travel_dates": f"{user_data.get('start_date', '')} 至 {user_data.get('end_date', '')}"
     }
-    
-    print(f"\n🚀 Starting LangGraph Multi-Agent Planning...")
-    print("   This process uses multiple AI agents collaborating in real-time")
-    print("   Each agent will search for current information and provide expertise")
-    
+
+    print(f"\n🚀 启动LangGraph多智能体规划...")
+    print("   此过程使用多个AI智能体实时协作")
+    print("   每个智能体将搜索当前信息并提供专业建议")
+
     try:
-        # Initialize and run the system
+        # 初始化并运行系统
         travel_agents = LangGraphTravelAgents()
         result = travel_agents.run_travel_planning(travel_request)
-        
+
         if result["success"]:
             display_planning_results(result, travel_request)
-            
-            # Save results
-            save_results = input("\n💾 Save complete travel plan to file? (y/n): ").lower().strip()
-            if save_results == 'y':
+
+            # 保存结果
+            save_results = input("\n💾 将完整旅行计划保存到文件? (y/n): ").lower().strip()
+            if save_results in ['y', 'yes', '是', '确认']:
                 save_langgraph_results(result, travel_request)
         else:
-            print(f"❌ Planning failed: {result.get('error')}")
-            
+            print(f"❌ 规划失败: {result.get('error')}")
+
     except Exception as e:
-        print(f"❌ System error: {str(e)}")
+        print(f"❌ 系统错误: {str(e)}")
 
 def display_planning_results(result: dict, request: dict):
     """
@@ -286,40 +308,50 @@ def save_langgraph_results(result: dict, request: dict):
     content.append("="*80)
     content.append("LANGGRAPH多智能体AI旅行规划报告")
     content.append("="*80)
-    content.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    content.append(f"System: LangGraph Framework with Google Gemini & DuckDuckGo")
+    content.append(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    content.append(f"系统: LangGraph框架 + Google Gemini + DuckDuckGo搜索")
     content.append("")
-    
-    # Trip details
+
+    # 行程详情
     travel_plan = result["travel_plan"]
-    content.append("TRIP OVERVIEW:")
+    content.append("行程概览:")
     content.append("-" * 40)
-    content.append(f"Destination: {travel_plan.get('destination')}")
-    content.append(f"Duration: {travel_plan.get('duration')} days")
-    content.append(f"Group Size: {travel_plan.get('group_size')} people")
-    content.append(f"Budget Range: {travel_plan.get('budget_range')}")
-    content.append(f"Interests: {', '.join(travel_plan.get('interests', []))}")
+    content.append(f"目的地: {travel_plan.get('destination')}")
+    content.append(f"行程时长: {travel_plan.get('duration')} 天")
+    content.append(f"团队人数: {travel_plan.get('group_size')} 人")
+    content.append(f"预算范围: {travel_plan.get('budget_range')}")
+    content.append(f"兴趣爱好: {', '.join(travel_plan.get('interests', []))}")
     content.append("")
-    
-    # System performance
-    content.append("SYSTEM PERFORMANCE:")
+
+    # 系统性能
+    content.append("系统性能:")
     content.append("-" * 40)
-    content.append(f"Planning Method: {travel_plan.get('planning_method')}")
-    content.append(f"Total Iterations: {result.get('total_iterations')}")
-    content.append(f"Agents Involved: {len(result['agent_outputs'])}")
+    content.append(f"规划方法: {travel_plan.get('planning_method')}")
+    content.append(f"总迭代次数: {result.get('total_iterations')}")
+    content.append(f"参与智能体: {len(result['agent_outputs'])}个")
     content.append("")
-    
-    # Agent contributions
-    content.append("AGENT CONTRIBUTIONS:")
+
+    # 智能体贡献
+    content.append("智能体贡献:")
     content.append("-" * 40)
     agent_outputs = result.get("agent_outputs", {})
     for agent_name, output in agent_outputs.items():
-        content.append(f"\n{agent_name.replace('_', ' ').title().upper()}:")
-        content.append(f"Status: {output.get('status', 'Unknown')}")
-        content.append(f"Timestamp: {output.get('timestamp', 'Unknown')}")
-        content.append(f"Response: {output.get('response', 'No output available')}")
+        # 将智能体名称转换为中文
+        agent_display_name = {
+            'coordinator': '协调员智能体',
+            'travel_advisor': '旅行顾问智能体',
+            'budget_optimizer': '预算优化师智能体',
+            'weather_analyst': '天气分析师智能体',
+            'local_expert': '当地专家智能体',
+            'itinerary_planner': '行程规划师智能体'
+        }.get(agent_name, agent_name.replace('_', ' ').title())
+
+        content.append(f"\n{agent_display_name.upper()}:")
+        content.append(f"状态: {output.get('status', '未知')}")
+        content.append(f"时间戳: {output.get('timestamp', '未知')}")
+        content.append(f"响应: {output.get('response', '无可用输出')}")
         content.append("")
-    
+
     content.append("="*80)
     content.append("LangGraph多智能体旅行规划报告结束")
     content.append("="*80)
@@ -355,7 +387,7 @@ def main():
 
         print("\n" + "="*60)
         print("选择您的体验:")
-        print("1. 🎭 快速演示 (上海示例行程)")
+        print("1. 🎭 快速演示 (示例行程-上海)")
         print("2. 🎯 交互式旅行规划 (自定义行程)")
         print("3. ❌ 退出")
 

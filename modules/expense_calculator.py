@@ -110,43 +110,43 @@ class ExpenseCalculator:
         # 计算交通费用
         transportation_cost = self._calculate_transportation_cost(total_days, group_size, budget_range)
         
-        # Calculate miscellaneous costs
+        # 计算杂项费用
         miscellaneous_cost = self._calculate_miscellaneous_cost(total_days, group_size, budget_range)
-        
-        # Calculate totals
-        total_cost = (accommodation_cost + food_cost + activities_cost + 
+
+        # 计算总费用
+        total_cost = (accommodation_cost + food_cost + activities_cost +
                      transportation_cost + miscellaneous_cost)
-        
+
         daily_budget = total_cost / total_days if total_days > 0 else 0
-        
-        # Create detailed breakdown
+
+        # 创建详细费用分解
         expense_breakdown = {
-            'base_currency': 'USD',
+            'base_currency': 'CNY',  # 基础货币：人民币
             'trip_duration': total_days,
             'group_size': group_size,
             'budget_range': budget_range,
-            
-            # Main categories
-            'accommodation_cost': round(accommodation_cost, 2),
-            'food_cost': round(food_cost, 2),
-            'activities_cost': round(activities_cost, 2),
-            'transportation_cost': round(transportation_cost, 2),
-            'miscellaneous_cost': round(miscellaneous_cost, 2),
-            
-            # Totals
-            'total_cost': round(total_cost, 2),
-            'daily_budget': round(daily_budget, 2),
-            'cost_per_person': round(total_cost / group_size, 2) if group_size > 0 else 0,
-            'daily_cost_per_person': round(daily_budget / group_size, 2) if group_size > 0 else 0,
-            
-            # Detailed breakdown
+
+            # 主要费用类别
+            'accommodation_cost': round(accommodation_cost, 2),    # 住宿费用
+            'food_cost': round(food_cost, 2),                     # 餐饮费用
+            'activities_cost': round(activities_cost, 2),         # 活动费用
+            'transportation_cost': round(transportation_cost, 2), # 交通费用
+            'miscellaneous_cost': round(miscellaneous_cost, 2),   # 杂项费用
+
+            # 费用汇总
+            'total_cost': round(total_cost, 2),                   # 总费用
+            'daily_budget': round(daily_budget, 2),               # 每日预算
+            'cost_per_person': round(total_cost / group_size, 2) if group_size > 0 else 0,        # 人均费用
+            'daily_cost_per_person': round(daily_budget / group_size, 2) if group_size > 0 else 0, # 人均每日费用
+
+            # 详细费用分解
             'detailed_breakdown': self._create_detailed_breakdown(
                 hotels, attractions, restaurants, activities, trip_details
             ),
-            
-            # Percentage breakdown
+
+            # 费用百分比分解
             'cost_percentages': self._calculate_cost_percentages(
-                accommodation_cost, food_cost, activities_cost, 
+                accommodation_cost, food_cost, activities_cost,
                 transportation_cost, miscellaneous_cost, total_cost
             )
         }
@@ -154,63 +154,135 @@ class ExpenseCalculator:
         return expense_breakdown
     
     def _calculate_accommodation_cost(self, hotels: List[Hotel], total_days: int, budget_range: str) -> float:
-        """Calculate accommodation costs"""
+        """
+        计算住宿费用
+
+        这个方法负责计算整个旅行期间的住宿费用，包括：
+        1. 根据预算范围筛选合适的酒店
+        2. 使用回退估算（如果没有酒店数据）
+        3. 计算总住宿费用
+
+        参数：
+        - hotels: 可选酒店列表
+        - total_days: 总住宿天数
+        - budget_range: 预算范围
+
+        返回：总住宿费用（人民币）
+        """
         if not hotels:
-            # Fallback estimation
-            base_costs = {'budget': 40, 'mid-range': 100, 'luxury': 250}
-            return base_costs.get(budget_range, 100) * total_days
-        
-        # Use the most appropriate hotel based on budget
+            # 回退估算（如果没有酒店数据）
+            base_costs = {'经济型': 280, '中等预算': 700, '豪华型': 1750}
+            return base_costs.get(budget_range, 700) * total_days
+
+        # 根据预算选择最合适的酒店
         suitable_hotels = self._filter_hotels_by_budget(hotels, budget_range)
         selected_hotel = suitable_hotels[0] if suitable_hotels else hotels[0]
-        
+
         return selected_hotel.calculate_total_cost(total_days)
     
-    def _calculate_food_cost(self, restaurants: List[Attraction], total_days: int, 
+    def _calculate_food_cost(self, restaurants: List[Attraction], total_days: int,
                            group_size: int, budget_range: str) -> float:
-        """Calculate food and dining costs"""
+        """
+        计算餐饮费用
+
+        这个方法负责计算整个旅行期间的餐饮费用，包括：
+        1. 基于餐厅数据计算平均用餐费用
+        2. 使用回退估算（如果没有餐厅数据）
+        3. 考虑团队人数和用餐频率
+
+        参数：
+        - restaurants: 推荐餐厅列表
+        - total_days: 总天数
+        - group_size: 团队人数
+        - budget_range: 预算范围
+
+        返回：总餐饮费用（人民币）
+        """
         if not restaurants:
-            # Fallback estimation (3 meals per day)
-            base_daily_cost = {'budget': 25, 'mid-range': 50, 'luxury': 100}
-            return base_daily_cost.get(budget_range, 50) * total_days * group_size
-        
-        # Calculate based on restaurant costs (assuming 2-3 restaurant meals per day)
+            # 回退估算（每天3餐）
+            base_daily_cost = {'经济型': 175, '中等预算': 350, '豪华型': 700}
+            return base_daily_cost.get(budget_range, 350) * total_days * group_size
+
+        # 基于餐厅费用计算（假设每天2-3次餐厅用餐）
         avg_meal_cost = sum(r.estimated_cost for r in restaurants[:5]) / min(len(restaurants), 5)
-        meals_per_day = 2.5  # Average between 2-3 restaurant meals
-        
+        meals_per_day = 2.5  # 平均每天2-3次餐厅用餐
+
         daily_food_cost = avg_meal_cost * meals_per_day * group_size
         return daily_food_cost * total_days
     
-    def _calculate_activities_cost(self, activities: List[Attraction], total_days: int, 
+    def _calculate_activities_cost(self, activities: List[Attraction], total_days: int,
                                  group_size: int, budget_range: str) -> float:
-        """Calculate activities and attractions costs"""
+        """
+        计算活动和景点费用
+
+        这个方法负责计算所有娱乐活动和景点的费用，包括：
+        1. 基于计划活动计算平均费用
+        2. 使用回退估算（如果没有活动数据）
+        3. 考虑每日活动频率和团队人数
+
+        参数：
+        - activities: 计划的活动和景点列表
+        - total_days: 总天数
+        - group_size: 团队人数
+        - budget_range: 预算范围
+
+        返回：总活动费用（人民币）
+        """
         if not activities:
-            # Fallback estimation
-            base_daily_cost = {'budget': 30, 'mid-range': 60, 'luxury': 120}
-            return base_daily_cost.get(budget_range, 60) * total_days * group_size
-        
-        # Calculate based on planned activities (1-2 major activities per day)
+            # 回退估算
+            base_daily_cost = {'经济型': 210, '中等预算': 420, '豪华型': 840}
+            return base_daily_cost.get(budget_range, 420) * total_days * group_size
+
+        # 基于计划活动计算（每天1-2个主要活动）
         activities_per_day = min(2, len(activities) / max(total_days, 1))
         avg_activity_cost = sum(a.estimated_cost for a in activities[:10]) / min(len(activities), 10)
-        
+
         daily_activities_cost = avg_activity_cost * activities_per_day * group_size
         return daily_activities_cost * total_days
-    
+
     def _calculate_transportation_cost(self, total_days: int, group_size: int, budget_range: str) -> float:
-        """Calculate transportation costs"""
-        daily_transport_cost = self.transportation_costs.get(budget_range, 35)
-        
-        # Group discounts for larger groups (shared taxis, etc.)
+        """
+        计算交通费用
+
+        这个方法负责计算旅行期间的交通费用，包括：
+        1. 根据预算范围确定每日交通费用
+        2. 考虑团队规模的优惠（拼车等）
+        3. 计算总交通费用
+
+        参数：
+        - total_days: 总天数
+        - group_size: 团队人数
+        - budget_range: 预算范围
+
+        返回：总交通费用（人民币）
+        """
+        daily_transport_cost = self.transportation_costs.get(budget_range, 250)
+
+        # 大团队优惠（拼车等，非线性增长）
         if group_size > 2:
-            group_multiplier = 1 + (group_size - 1) * 0.7  # Not linear scaling
+            group_multiplier = 1 + (group_size - 1) * 0.7  # 非线性缩放
         else:
             group_multiplier = group_size
-        
+
         return daily_transport_cost * group_multiplier * total_days
-    
+
     def _calculate_miscellaneous_cost(self, total_days: int, group_size: int, budget_range: str) -> float:
-        """Calculate miscellaneous costs (shopping, tips, emergencies)"""
-        daily_misc_cost = self.miscellaneous_costs.get(budget_range, 40)
+        """
+        计算杂项费用（购物、小费、紧急情况）
+
+        这个方法负责计算各种杂项费用，包括：
+        1. 购物和纪念品费用
+        2. 小费和服务费
+        3. 紧急备用金
+
+        参数：
+        - total_days: 总天数
+        - group_size: 团队人数
+        - budget_range: 预算范围
+
+        返回：总杂项费用（人民币）
+        """
+        daily_misc_cost = self.miscellaneous_costs.get(budget_range, 280)
         return daily_misc_cost * group_size * total_days
     
     def _filter_hotels_by_budget(self, hotels: List[Hotel], budget_range: str) -> List[Hotel]:
@@ -336,37 +408,51 @@ class ExpenseCalculator:
         return comparison
     
     def get_cost_saving_tips(self, expenses: Dict[str, Any]) -> List[str]:
-        """Generate cost-saving tips based on expense breakdown"""
+        """
+        根据费用分解生成省钱贴士
+
+        这个方法分析用户的费用结构，针对不同的费用类别
+        提供个性化的省钱建议和优化策略。
+
+        参数：
+        - expenses: 包含费用分解和预算信息的字典
+
+        返回：省钱贴士字符串列表
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何根据数据分析结果
+        生成个性化的建议和推荐。
+        """
         tips = []
-        budget_range = expenses.get('budget_range', 'mid-range')
+        budget_range = expenses.get('budget_range', '中等预算')
         percentages = expenses.get('cost_percentages', {})
-        
-        # Accommodation tips
+
+        # 住宿费用优化建议
         if percentages.get('accommodation', 0) > 40:
-            tips.append("Consider staying in budget hotels or guesthouses to reduce accommodation costs")
-            tips.append("Look for hotels slightly outside city center for better rates")
-        
-        # Food tips
+            tips.append("考虑入住经济型酒店或民宿以降低住宿成本")
+            tips.append("选择市中心外围的酒店可获得更优惠的价格")
+
+        # 餐饮费用优化建议
         if percentages.get('food', 0) > 35:
-            tips.append("Try local street food and markets for authentic and budget-friendly meals")
-            tips.append("Consider hotels with breakfast included")
-        
-        # Activities tips
+            tips.append("尝试当地街头美食和市场，既正宗又经济实惠")
+            tips.append("选择包含早餐的酒店可节省餐饮费用")
+
+        # 活动费用优化建议
         if percentages.get('activities', 0) > 30:
-            tips.append("Look for free walking tours and public attractions")
-            tips.append("Check for group discounts on activities and attractions")
-        
-        # Transportation tips
+            tips.append("寻找免费的徒步游览和公共景点")
+            tips.append("查看活动和景点的团体折扣优惠")
+
+        # 交通费用优化建议
         if percentages.get('transportation', 0) > 20:
-            tips.append("Use public transportation instead of taxis when possible")
-            tips.append("Consider getting a city transport pass for multiple days")
-        
-        # General tips based on budget range
-        if budget_range != 'budget':
-            tips.append("Travel during off-peak seasons for better rates")
-            tips.append("Book accommodations and activities in advance for early bird discounts")
-        
-        tips.append("Set aside 10-15% of your budget for unexpected expenses")
-        tips.append("Use travel apps to find deals and compare prices")
-        
+            tips.append("尽可能使用公共交通而非出租车")
+            tips.append("考虑购买多日城市交通通票")
+
+        # 基于预算范围的通用建议
+        if budget_range != '经济型':
+            tips.append("选择淡季出行可获得更优惠的价格")
+            tips.append("提前预订住宿和活动可享受早鸟折扣")
+
+        tips.append("预留10-15%的预算用于意外支出")
+        tips.append("使用旅行应用寻找优惠并比较价格")
+
         return tips

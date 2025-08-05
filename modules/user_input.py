@@ -445,7 +445,7 @@ class UserInputHandler:
                 break
             elif travel_style in ['2']:
                 preferences['travel_style'] = '探索者'
-                print("✅ 探索者风格 - 著名景点和隐藏宝石的完美结合！")
+                print("✅ 探索者风格 - 著名景点和小众景点的完美结合！")
                 break
             elif travel_style in ['3']:
                 preferences['travel_style'] = '当地人'
@@ -457,134 +457,174 @@ class UserInputHandler:
         return preferences
     
     def _get_additional_options(self) -> Dict[str, Any]:
-        """Get additional options and special requests"""
-        print("\n⚙️  ADDITIONAL OPTIONS")
+        """
+        获取额外选项和特殊要求
+
+        这个方法收集用户的额外偏好和特殊要求，包括：
+        1. 交通偏好设置
+        2. 住宿类型偏好
+        3. 特殊场合说明
+        4. 其他特殊要求
+
+        返回：包含所有额外选项的字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何收集可选的用户偏好，
+        为个性化服务提供更多定制选项。
+        """
+        print("\n⚙️  额外选项")
         options = {}
-        
-        # Transportation preferences
-        print("Transportation preferences:")
-        print("1. Public transport preferred")
-        print("2. Mix of transport options")
-        print("3. Private transport preferred")
-        
+
+        # 交通偏好
+        print("交通偏好:")
+        print("1. 偏好公共交通")
+        print("2. 混合交通方式")
+        print("3. 偏好私人交通")
+
         while True:
-            transport = input("Select preference (1-3, or press Enter for default): ").strip()
+            transport = input("选择偏好 (1-3，或按回车使用默认): ").strip()
             if not transport or transport == '2':
-                options['transport_preference'] = 'mixed'
+                options['transport_preference'] = '混合'
                 break
             elif transport == '1':
-                options['transport_preference'] = 'public'
-                print("✅ Public transport preferred - Eco-friendly and budget-conscious!")
+                options['transport_preference'] = '公共交通'
+                print("✅ 偏好公共交通 - 环保且经济实惠！")
                 break
             elif transport == '3':
-                options['transport_preference'] = 'private'
-                print("✅ Private transport preferred - Comfort and convenience!")
+                options['transport_preference'] = '私人交通'
+                print("✅ 偏好私人交通 - 舒适便捷！")
                 break
             else:
-                print("❌ Please select 1, 2, or 3.")
-        
-        # Accommodation preferences
-        accommodation_prefs = input("\nAccommodation preferences (hotel, hostel, airbnb, etc.): ").strip().lower()
+                print("❌ 请选择1、2或3。")
+
+        # 住宿偏好
+        accommodation_prefs = input("\n住宿偏好 (酒店、青旅、民宿等): ").strip()
         options['accommodation_preference'] = accommodation_prefs
-        
-        # Special occasions
-        special_occasion = input("Special occasion (anniversary, birthday, honeymoon, etc.): ").strip()
+
+        # 特殊场合
+        special_occasion = input("特殊场合 (周年纪念、生日、蜜月等): ").strip()
         options['special_occasion'] = special_occasion
         if special_occasion:
-            print(f"✅ Special occasion noted: {special_occasion} - We'll make it memorable!")
-        
-        # Additional requests
-        additional_requests = input("Any other special requests or requirements: ").strip()
+            print(f"✅ 特殊场合已记录: {special_occasion} - 我们会让它难忘！")
+
+        # 额外要求
+        additional_requests = input("其他特殊要求或需求: ").strip()
         options['additional_requests'] = additional_requests
-        
+
         return options
     
     def confirm_details(self, details: Dict[str, Any]) -> bool:
-        """Display comprehensive trip summary and confirm details"""
+        """
+        显示完整的旅行摘要并确认详情
+
+        这个方法展示用户输入的所有信息的综合摘要，
+        让用户确认或修改详情。
+
+        参数：
+        - details: 包含所有旅行详情的字典
+
+        返回：用户确认结果（True/False）
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何创建用户友好的确认界面，
+        提供清晰的信息展示和修改选项。
+        """
         print("\n" + "="*70)
-        print("📋 COMPLETE TRIP SUMMARY")
+        print("📋 完整旅行摘要")
         print("="*70)
-        
-        # Basic Information
-        print(f"🌍 Destination: {details['destination']}")
-        print(f"📅 Travel Dates: {details['start_date']} to {details['end_date']}")
-        print(f"⏰ Duration: {details['total_days']} days")
-        print(f"👥 Group Size: {details['group_size']} traveler(s)")
-        print(f"💰 Budget Range: {details['budget_range'].title()}")
-        print(f"💱 Currency: {details['currency']}")
-        
-        # Preferences
+
+        # 基本信息
+        print(f"🌍 目的地: {details['destination']}")
+        print(f"📅 旅行日期: {details['start_date']} 至 {details['end_date']}")
+        print(f"⏰ 时长: {details['total_days']} 天")
+        print(f"👥 团队人数: {details['group_size']} 位旅行者")
+        print(f"💰 预算范围: {details['budget_range']}")
+        print(f"💱 货币: {details['currency']}")
+
+        # 偏好设置
         preferences = details.get('preferences', {})
         if preferences.get('interests'):
-            print(f"🎯 Interests: {', '.join(preferences['interests'])}")
-        
+            print(f"🎯 兴趣爱好: {', '.join(preferences['interests'])}")
+
         if preferences.get('activity_level'):
-            print(f"🚶 Activity Level: {preferences['activity_level'].title()}")
-        
+            print(f"🚶 活动强度: {preferences['activity_level']}")
+
         if preferences.get('travel_style'):
-            print(f"✈️  Travel Style: {preferences['travel_style'].title()}")
-        
+            print(f"✈️  旅行风格: {preferences['travel_style']}")
+
         if preferences.get('dietary_restrictions'):
-            print(f"🍽️  Dietary: {preferences['dietary_restrictions']}")
-        
-        # Additional Options
+            print(f"🍽️  饮食要求: {preferences['dietary_restrictions']}")
+
+        # 额外选项
         additional = details.get('additional_options', {})
         if additional.get('transport_preference'):
-            print(f"🚌 Transport: {additional['transport_preference'].title()} preferred")
-        
+            print(f"🚌 交通偏好: {additional['transport_preference']}")
+
         if additional.get('special_occasion'):
-            print(f"🎉 Special Occasion: {additional['special_occasion']}")
-        
+            print(f"🎉 特殊场合: {additional['special_occasion']}")
+
         print("="*70)
-        
-        # Cost estimate preview
+
+        # 费用预估预览
         self._show_cost_preview(details)
-        
+
         print("\n" + "="*70)
-        
+
         while True:
-            print("\nOptions:")
-            print("1. Confirm and continue")
-            print("2. Edit details")
-            print("3. Cancel")
-            
-            choice = input("Please select (1-3): ").strip()
-            
+            print("\n选项:")
+            print("1. 确认并继续")
+            print("2. 编辑详情")
+            print("3. 取消")
+
+            choice = input("请选择 (1-3): ").strip()
+
             if choice == '1':
-                print("✅ Details confirmed! Let's plan your amazing trip...")
+                print("✅ 详情已确认！让我们规划您的精彩旅程...")
                 return True
             elif choice == '2':
                 return self._edit_details(details)
             elif choice == '3':
-                confirm_cancel = input("Are you sure you want to cancel? (y/n): ").lower().strip()
-                if confirm_cancel in ['y', 'yes']:
-                    print("❌ Trip planning cancelled.")
+                confirm_cancel = input("您确定要取消吗？(y/n): ").lower().strip()
+                if confirm_cancel in ['y', 'yes', '是', '确认']:
+                    print("❌ 旅行规划已取消。")
                     return False
             else:
-                print("❌ Please select 1, 2, or 3.")
+                print("❌ 请选择1、2或3。")
     
     def _show_cost_preview(self, details: Dict[str, Any]) -> None:
-        """Show estimated cost preview based on inputs"""
+        """
+        根据输入显示估算费用预览
+
+        这个方法基于用户的预算选择和旅行参数，
+        提供初步的费用估算预览。
+
+        参数：
+        - details: 包含旅行详情的字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何基于用户输入
+        进行简单的费用估算和预览。
+        """
         budget_range = details['budget_range']
         days = details['total_days']
         group_size = details['group_size']
-        
-        # Rough estimates per person per day
+
+        # 每人每日粗略估算（人民币）
         daily_estimates = {
-            'budget': 60,
-            'mid-range': 120,
-            'luxury': 250
+            '经济型': 350,
+            '中等预算': 700,
+            '豪华型': 1400
         }
-        
-        daily_cost = daily_estimates.get(budget_range, 120)
+
+        daily_cost = daily_estimates.get(budget_range, 700)
         total_per_person = daily_cost * days
         total_for_group = total_per_person * group_size
-        
-        print(f"\n💡 ROUGH COST ESTIMATE ({details['currency']})")
-        print(f"   Daily per person: ~{daily_cost}")
-        print(f"   Total per person: ~{total_per_person:,}")
-        print(f"   Total for group: ~{total_for_group:,}")
-        print("   (This is a rough estimate - detailed costs will be calculated next)")
+
+        print(f"\n💡 粗略费用估算 ({details['currency']})")
+        print(f"   每人每日: ~¥{daily_cost}")
+        print(f"   每人总计: ~¥{total_per_person:,}")
+        print(f"   团队总计: ~¥{total_for_group:,}")
+        print("   (这是粗略估算 - 详细费用将在下一步计算)")
     
     def _edit_details(self, details: Dict[str, Any]) -> bool:
         """Allow user to edit specific details"""

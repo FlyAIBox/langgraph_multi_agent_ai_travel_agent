@@ -112,63 +112,101 @@ class CurrencyConverter:
             return 1.0
         
         try:
-            # Check cache first
+            # 首先检查缓存
             if self._is_cache_valid():
                 rate_key = f"{from_currency}_{to_currency}"
                 if rate_key in self.rate_cache:
                     return self.rate_cache[rate_key]
-            
-            # Fetch fresh rates
+
+            # 获取最新汇率
             rates = self._fetch_exchange_rates(from_currency)
             if rates and to_currency in rates:
                 rate = rates[to_currency]
-                
-                # Update cache
+
+                # 更新缓存
                 self._update_cache(from_currency, rates)
-                
+
                 return rate
-            
-            # Fallback to stored rates
+
+            # 回退到存储的汇率
             return self._get_fallback_rate(from_currency, to_currency)
-            
+
         except Exception as e:
-            print(f"Error getting exchange rate: {e}")
+            print(f"获取汇率时出错: {e}")
             return self._get_fallback_rate(from_currency, to_currency)
     
-    def convert_amount(self, amount: float, from_currency: str = 'USD', to_currency: str = 'USD') -> float:
-        """Convert amount from one currency to another"""
+    def convert_amount(self, amount: float, from_currency: str = 'CNY', to_currency: str = 'CNY') -> float:
+        """
+        将金额从一种货币转换为另一种货币
+
+        这个方法执行实际的货币转换计算，包括：
+        1. 输入验证（金额必须大于0）
+        2. 获取当前汇率
+        3. 执行转换计算
+        4. 四舍五入到2位小数
+
+        参数：
+        - amount: 要转换的金额
+        - from_currency: 源货币代码（默认：CNY）
+        - to_currency: 目标货币代码（默认：CNY）
+
+        返回：转换后的金额（保留2位小数）
+        """
         if amount <= 0:
             return 0.0
-        
+
         rate = self.get_exchange_rate(from_currency, to_currency)
         converted_amount = amount * rate
-        
+
         return round(converted_amount, 2)
     
     def convert_expenses(self, expense_breakdown: Dict[str, Any], target_currency: str) -> Dict[str, Any]:
-        """Convert all expenses to target currency"""
-        base_currency = expense_breakdown.get('base_currency', 'USD')
-        
+        """
+        将所有费用转换为目标货币
+
+        这个方法处理完整的费用明细转换，包括：
+        1. 检查源货币和目标货币
+        2. 获取转换汇率
+        3. 转换所有费用类别
+        4. 处理详细费用分解
+        5. 添加货币格式化
+
+        参数：
+        - expense_breakdown: 费用明细字典
+        - target_currency: 目标货币代码
+
+        返回：转换后的费用明细字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何处理复杂的嵌套数据结构，
+        并对每个数值字段进行批量转换。
+        """
+        base_currency = expense_breakdown.get('base_currency', 'CNY')
+
         if base_currency == target_currency:
-            # Add currency symbols and return
+            # 添加货币符号并返回
             return self._add_currency_formatting(expense_breakdown, target_currency)
         
         try:
             conversion_rate = self.get_exchange_rate(base_currency, target_currency)
             
             converted_expenses = {
-                'base_currency': base_currency,
-                'target_currency': target_currency,
-                'conversion_rate': conversion_rate,
-                'converted_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'original_total': expense_breakdown.get('total_cost', 0),
-                'converted_total': 0
+                'base_currency': base_currency,                                    # 基础货币
+                'target_currency': target_currency,                               # 目标货币
+                'conversion_rate': conversion_rate,                               # 转换汇率
+                'converted_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),   # 转换日期
+                'original_total': expense_breakdown.get('total_cost', 0),         # 原始总额
+                'converted_total': 0                                              # 转换后总额
             }
-            
-            # Convert all expense categories
+
+            # 转换所有费用类别
             categories_to_convert = [
-                'accommodation_cost', 'food_cost', 'activities_cost', 
-                'transportation_cost', 'miscellaneous_cost', 'total_cost'
+                'accommodation_cost',    # 住宿费用
+                'food_cost',            # 餐饮费用
+                'activities_cost',      # 活动费用
+                'transportation_cost',  # 交通费用
+                'miscellaneous_cost',   # 杂项费用
+                'total_cost'           # 总费用
             ]
             
             for category in categories_to_convert:
@@ -180,74 +218,106 @@ class CurrencyConverter:
                     if category == 'total_cost':
                         converted_expenses['converted_total'] = converted_amount
             
-            # Convert daily budget if available
+            # 转换每日预算（如果可用）
             if 'daily_budget' in expense_breakdown:
                 converted_expenses['daily_budget'] = self.convert_amount(
                     expense_breakdown['daily_budget'], base_currency, target_currency
                 )
-            
-            # Add detailed breakdown if available
+
+            # 添加详细分解（如果可用）
             if 'detailed_breakdown' in expense_breakdown:
                 converted_expenses['detailed_breakdown'] = self._convert_detailed_breakdown(
                     expense_breakdown['detailed_breakdown'], base_currency, target_currency
                 )
-            
-            # Add currency formatting
+
+            # 添加货币格式化
             converted_expenses = self._add_currency_formatting(converted_expenses, target_currency)
-            
+
             return converted_expenses
-            
+
         except Exception as e:
-            print(f"Error converting expenses: {e}")
-            # Return original with currency formatting
+            print(f"转换费用时出错: {e}")
+            # 返回带货币格式化的原始数据
             return self._add_currency_formatting(expense_breakdown, base_currency)
     
     def _fetch_exchange_rates(self, base_currency: str) -> Optional[Dict[str, float]]:
-        """Fetch exchange rates from API"""
+        """
+        从API获取汇率数据
+
+        这个私有方法负责从外部API获取实时汇率，包括：
+        1. 选择合适的API端点（付费或免费）
+        2. 发送HTTP请求获取汇率数据
+        3. 解析JSON响应
+        4. 处理不同API格式的响应
+
+        参数：
+        - base_currency: 基础货币代码
+
+        返回：汇率字典或None（如果失败）
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何集成外部API，
+        包括错误处理和多种API格式的支持。
+        """
         try:
             if self.api_key:
-                # Use paid API if key available
+                # 如果有API密钥，使用付费API
                 url = f"https://v6.exchangerate-api.com/v6/{self.api_key}/latest/{base_currency}"
             else:
-                # Use free API
+                # 使用免费API
                 url = f"{self.base_url}/{base_currency}"
-            
+
             response = self.session.get(url, timeout=10)
             response.raise_for_status()
             data = response.json()
-            
+
             if 'rates' in data:
                 return data['rates']
-            elif 'conversion_rates' in data:  # Different API format
+            elif 'conversion_rates' in data:  # 不同的API格式
                 return data['conversion_rates']
-            
+
             return None
-            
+
         except Exception as e:
-            print(f"Failed to fetch exchange rates: {e}")
+            print(f"获取汇率失败: {e}")
             return None
     
     def _get_fallback_rate(self, from_currency: str, to_currency: str) -> float:
-        """Get exchange rate using fallback rates"""
+        """
+        使用回退汇率获取汇率
+
+        当API不可用时，这个方法使用预设的回退汇率
+        来计算货币转换比率。计算通过人民币作为中介货币。
+
+        参数：
+        - from_currency: 源货币代码
+        - to_currency: 目标货币代码
+
+        返回：计算得出的汇率
+
+        适用于大模型技术初级用户：
+        这展示了如何实现系统的回退机制，
+        确保在外部服务失败时系统仍能正常工作。
+        """
         try:
             from_rate = self.fallback_rates.get(from_currency, 1.0)
             to_rate = self.fallback_rates.get(to_currency, 1.0)
-            
-            # Convert via USD
-            if from_currency != 'USD':
-                usd_amount = 1.0 / from_rate
+
+            # 通过人民币进行转换
+            if from_currency != 'CNY':
+                cny_amount = 1.0 / from_rate
             else:
-                usd_amount = 1.0
-            
-            if to_currency != 'USD':
-                final_rate = usd_amount * to_rate
+                cny_amount = 1.0
+
+            if to_currency != 'CNY':
+                final_rate = cny_amount * to_rate
             else:
-                final_rate = usd_amount
-            
+                final_rate = cny_amount
+
             return round(final_rate, 4)
-            
+
         except Exception:
-            return 1.0  # Safe fallback
+            return 1.0  # 安全回退值
     
     def _is_cache_valid(self) -> bool:
         """Check if cached exchange rates are still valid"""

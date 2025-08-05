@@ -108,13 +108,24 @@ class TravelAgentTools:
 
                 return "\n".join(formatted_results)
         except Exception as e:
-            return f"Error searching for destination info: {str(e)}"
-    
+            return f"搜索目的地信息时出错: {str(e)}"
+
     @tool
     def search_weather_info(destination: str, dates: str = "") -> str:
-        """Search for weather information for a destination"""
+        """
+        搜索目的地天气信息
+
+        这个工具专门用于搜索特定目的地的天气预报信息，
+        包括气候条件、最佳旅行时间等。
+
+        参数：
+        - destination: 目的地名称
+        - dates: 日期信息（可选）
+
+        返回：格式化的天气信息字符串
+        """
         try:
-            weather_query = f"{destination} weather forecast {dates} travel climate"
+            weather_query = f"{destination} 天气预报 {dates} 旅行气候"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     weather_query,
@@ -122,26 +133,37 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No weather information found for {destination}"
-                
+                    return f"未找到{destination}的天气信息"
+
                 weather_info = []
                 for result in results[:3]:
                     weather_info.append(
-                        f"• {result.get('title', 'Weather Info')}\n"
-                        f"  {result.get('body', 'No details available')}\n"
+                        f"• {result.get('title', '天气信息')}\n"
+                        f"  {result.get('body', '无详细信息')}\n"
                     )
-                
-                return f"Weather information for {destination}:\n" + "\n".join(weather_info)
+
+                return f"{destination}的天气信息:\n" + "\n".join(weather_info)
         except Exception as e:
-            return f"Error searching weather info: {str(e)}"
+            return f"搜索天气信息时出错: {str(e)}"
     
     @tool
     def search_attractions(destination: str, interests: str = "") -> str:
-        """Search for attractions and activities in a destination"""
+        """
+        搜索目的地景点和活动
+
+        这个工具专门用于搜索特定目的地的热门景点、
+        活动和必游之地，可以根据兴趣进行筛选。
+
+        参数：
+        - destination: 目的地名称
+        - interests: 兴趣关键词（可选）
+
+        返回：格式化的景点信息字符串
+        """
         try:
-            attraction_query = f"{destination} top attractions activities {interests} must visit places"
+            attraction_query = f"{destination} 热门景点 活动 {interests} 必游之地"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     attraction_query,
@@ -149,26 +171,37 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No attractions found for {destination}"
-                
+                    return f"未找到{destination}的景点信息"
+
                 attractions = []
                 for i, result in enumerate(results[:6], 1):
                     attractions.append(
-                        f"{i}. {result.get('title', 'Attraction')}\n"
-                        f"   {result.get('body', 'No description')[:200]}...\n"
+                        f"{i}. {result.get('title', '景点')}\n"
+                        f"   {result.get('body', '无描述')[:200]}...\n"
                     )
-                
-                return f"Top attractions in {destination}:\n" + "\n".join(attractions)
+
+                return f"{destination}的热门景点:\n" + "\n".join(attractions)
         except Exception as e:
-            return f"Error searching attractions: {str(e)}"
+            return f"搜索景点信息时出错: {str(e)}"
     
     @tool
-    def search_hotels(destination: str, budget: str = "mid-range") -> str:
-        """Search for hotel information and pricing"""
+    def search_hotels(destination: str, budget: str = "中等预算") -> str:
+        """
+        搜索酒店信息和价格
+
+        这个工具专门用于搜索特定目的地的酒店选择，
+        包括住宿选项、价格信息和最佳住宿地点。
+
+        参数：
+        - destination: 目的地名称
+        - budget: 预算范围（默认"中等预算"）
+
+        返回：格式化的酒店信息字符串
+        """
         try:
-            hotel_query = f"{destination} hotels {budget} best places to stay accommodation"
+            hotel_query = f"{destination} 酒店 {budget} 最佳住宿 住宿推荐"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     hotel_query,
@@ -176,26 +209,37 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No hotel information found for {destination}"
-                
+                    return f"未找到{destination}的酒店信息"
+
                 hotels = []
                 for i, result in enumerate(results[:4], 1):
                     hotels.append(
-                        f"{i}. {result.get('title', 'Hotel')}\n"
-                        f"   {result.get('body', 'No details')[:180]}...\n"
+                        f"{i}. {result.get('title', '酒店')}\n"
+                        f"   {result.get('body', '无详细信息')[:180]}...\n"
                     )
-                
-                return f"Hotel options in {destination} ({budget} budget):\n" + "\n".join(hotels)
+
+                return f"{destination}的酒店选择 ({budget}预算):\n" + "\n".join(hotels)
         except Exception as e:
-            return f"Error searching hotels: {str(e)}"
+            return f"搜索酒店信息时出错: {str(e)}"
     
     @tool
     def search_restaurants(destination: str, cuisine: str = "") -> str:
-        """Search for restaurants and dining options"""
+        """
+        搜索餐厅和用餐选择
+
+        这个工具专门用于搜索特定目的地的餐厅推荐，
+        包括当地美食、特色菜系和用餐地点。
+
+        参数：
+        - destination: 目的地名称
+        - cuisine: 菜系类型（可选）
+
+        返回：格式化的餐厅推荐字符串
+        """
         try:
-            restaurant_query = f"{destination} best restaurants {cuisine} local food dining where to eat"
+            restaurant_query = f"{destination} 最佳餐厅 {cuisine} 当地美食 用餐推荐"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     restaurant_query,
@@ -203,26 +247,36 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No restaurant information found for {destination}"
-                
+                    return f"未找到{destination}的餐厅信息"
+
                 restaurants = []
                 for i, result in enumerate(results[:4], 1):
                     restaurants.append(
-                        f"{i}. {result.get('title', 'Restaurant')}\n"
-                        f"   {result.get('body', 'No details')[:180]}...\n"
+                        f"{i}. {result.get('title', '餐厅')}\n"
+                        f"   {result.get('body', '无详细信息')[:180]}...\n"
                     )
-                
-                return f"Restaurant recommendations in {destination}:\n" + "\n".join(restaurants)
+
+                return f"{destination}的餐厅推荐:\n" + "\n".join(restaurants)
         except Exception as e:
-            return f"Error searching restaurants: {str(e)}"
+            return f"搜索餐厅信息时出错: {str(e)}"
     
     @tool
     def search_local_tips(destination: str) -> str:
-        """Search for local tips, culture, and insider information"""
+        """
+        搜索当地贴士、文化和内部信息
+
+        这个工具专门用于搜索目的地的当地文化、
+        礼仪习俗和内部旅行贴士。
+
+        参数：
+        - destination: 目的地名称
+
+        返回：格式化的当地贴士字符串
+        """
         try:
-            tips_query = f"{destination} local tips insider guide cultural etiquette what to know"
+            tips_query = f"{destination} 当地贴士 旅行指南 文化礼仪 注意事项"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     tips_query,
@@ -230,26 +284,37 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No local tips found for {destination}"
-                
+                    return f"未找到{destination}的当地贴士"
+
                 tips = []
                 for result in results[:3]:
                     tips.append(
-                        f"• {result.get('title', 'Local Tip')}\n"
-                        f"  {result.get('body', 'No details')[:200]}...\n"
+                        f"• {result.get('title', '当地贴士')}\n"
+                        f"  {result.get('body', '无详细信息')[:200]}...\n"
                     )
-                
-                return f"Local tips for {destination}:\n" + "\n".join(tips)
+
+                return f"{destination}的当地贴士:\n" + "\n".join(tips)
         except Exception as e:
-            return f"Error searching local tips: {str(e)}"
+            return f"搜索当地贴士时出错: {str(e)}"
     
     @tool
     def search_budget_info(destination: str, duration: str = "") -> str:
-        """Search for budget and cost information"""
+        """
+        搜索预算和费用信息
+
+        这个工具专门用于搜索目的地的旅行预算、
+        日常开销和费用估算信息。
+
+        参数：
+        - destination: 目的地名称
+        - duration: 旅行时长（可选）
+
+        返回：格式化的预算信息字符串
+        """
         try:
-            budget_query = f"{destination} travel budget cost daily expenses {duration} how much money"
+            budget_query = f"{destination} 旅行预算 费用 日常开销 {duration} 花费"
             with DDGS() as ddgs:
                 results = list(ddgs.text(
                     budget_query,
@@ -257,32 +322,32 @@ class TravelAgentTools:
                     region=config.DUCKDUCKGO_REGION,
                     safesearch=config.DUCKDUCKGO_SAFESEARCH
                 ))
-                
+
                 if not results:
-                    return f"No budget information found for {destination}"
-                
+                    return f"未找到{destination}的预算信息"
+
                 budget_info = []
                 for result in results[:3]:
                     budget_info.append(
-                        f"• {result.get('title', 'Budget Info')}\n"
-                        f"  {result.get('body', 'No details')[:200]}...\n"
+                        f"• {result.get('title', '预算信息')}\n"
+                        f"  {result.get('body', '无详细信息')[:200]}...\n"
                     )
-                
-                return f"Budget information for {destination}:\n" + "\n".join(budget_info)
-        except Exception as e:
-            return f"Error searching budget info: {str(e)}"
 
-# Create global tools instance
+                return f"{destination}的预算信息:\n" + "\n".join(budget_info)
+        except Exception as e:
+            return f"搜索预算信息时出错: {str(e)}"
+
+# 创建全局工具实例
 travel_tools = TravelAgentTools()
 
-# Export individual tools for LangGraph
-search_destination_info = travel_tools.search_destination_info
-search_weather_info = travel_tools.search_weather_info
-search_attractions = travel_tools.search_attractions
-search_hotels = travel_tools.search_hotels
-search_restaurants = travel_tools.search_restaurants
-search_local_tips = travel_tools.search_local_tips
-search_budget_info = travel_tools.search_budget_info
+# 为LangGraph导出单独的工具函数
+search_destination_info = travel_tools.search_destination_info    # 目的地信息搜索
+search_weather_info = travel_tools.search_weather_info            # 天气信息搜索
+search_attractions = travel_tools.search_attractions              # 景点搜索
+search_hotels = travel_tools.search_hotels                        # 酒店搜索
+search_restaurants = travel_tools.search_restaurants              # 餐厅搜索
+search_local_tips = travel_tools.search_local_tips                # 当地贴士搜索
+search_budget_info = travel_tools.search_budget_info              # 预算信息搜索
 
 # List of all available tools
 ALL_TOOLS = [

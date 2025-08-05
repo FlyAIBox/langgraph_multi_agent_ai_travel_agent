@@ -5,7 +5,7 @@
 - 旅行顾问智能体：目的地专业知识和文化洞察
 - 预算优化智能体：成本分析和省钱策略
 - 天气分析智能体：天气情报和活动建议
-- 当地专家智能体：内部知识和隐藏宝石
+- 当地专家智能体：内部知识和小众景点
 - 行程规划智能体：日程优化和物流协调
 - 协调员智能体：工作流编排和决策综合
 
@@ -35,7 +35,7 @@ class TravelAdvisorAgent(BaseAgent):
 
     这个智能体具有丰富的目的地知识，包括：
     1. 必游景点推荐
-    2. 隐藏宝石发现
+    2. 小众景点发现
     3. 文化洞察和礼仪指导
     4. 最佳区域建议
     5. 交通贴士和实用信息
@@ -79,15 +79,25 @@ class TravelAdvisorAgent(BaseAgent):
                 'hidden_gems': ['红砖厂', '永庆坊', '荔枝湾', '石室圣心大教堂'],
                 'cultural_tips': ['粤语文化', '早茶礼仪', '岭南建筑'],
                 'best_areas': ['天河城', '北京路', '上下九', '珠江新城'],
-                'transport_tips': ['JR Pass', 'IC Cards', 'Rush hour avoidance']
+                'transport_tips': ['羊城通', '地铁网络', '避开高峰期']
             }
         }
     
     def process_message(self, message: Message) -> Optional[Message]:
-        """Process incoming messages"""
+        """
+        处理接收到的消息
+
+        这个方法负责处理其他智能体发送的消息，
+        根据消息类型提供相应的专业建议。
+
+        参数：
+        - message: 接收到的消息对象
+
+        返回：响应消息或None
+        """
         if message.msg_type == MessageType.QUERY:
             content = message.content
-            
+
             if 'destination_advice' in content:
                 advice = self._provide_destination_advice(content)
                 return Message(
@@ -100,54 +110,64 @@ class TravelAdvisorAgent(BaseAgent):
                     self.agent_id, message.sender, MessageType.RECOMMENDATION,
                     {'attractions': recommendations}
                 )
-        
+
         return None
     
     def generate_recommendation(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate travel recommendations based on context"""
+        """
+        根据上下文生成旅行推荐
+
+        这个方法是智能体的核心功能，根据用户的目的地、
+        兴趣和旅行时长生成个性化的旅行建议。
+
+        参数：
+        - context: 包含目的地、兴趣、时长等信息的上下文字典
+
+        返回：包含推荐内容和置信度的字典
+        """
         destination = context.get('destination', '').lower()
         interests = context.get('interests', [])
         duration = context.get('duration', 3)
-        
+
         recommendation = {
             'agent': self.agent_id,
             'type': 'travel_advice',
             'confidence': 0.8,
             'recommendations': {}
         }
-        
+
         if destination in self.destination_expertise:
             dest_info = self.destination_expertise[destination]
-            
-            # Core attractions
+
+            # 核心景点推荐
             must_visit = dest_info['must_visit'][:min(duration, len(dest_info['must_visit']))]
             recommendation['recommendations']['must_visit'] = must_visit
-            
-            # Interest-based suggestions
+
+            # 基于兴趣的建议
             if 'culture' in interests or 'history' in interests:
                 recommendation['recommendations']['cultural_sites'] = dest_info.get('cultural_tips', [])
-            
+
             if 'food' in interests:
                 recommendation['recommendations']['food_experiences'] = self._get_food_recommendations(destination)
-            
-            # Hidden gems for explorers
+
+            # 探索者的小众景点
             recommendation['recommendations']['hidden_gems'] = dest_info.get('hidden_gems', [])[:2]
-            
-            # Practical tips
+
+            # 实用贴士
             recommendation['recommendations']['transport_tips'] = dest_info.get('transport_tips', [])
             recommendation['recommendations']['best_areas'] = dest_info.get('best_areas', [])
-            
+
             recommendation['confidence'] = 0.9
         else:
-            # Generic recommendations
+            # 通用推荐
             recommendation['recommendations']['general_advice'] = [
-                'Research local customs and etiquette',
-                'Download offline maps and translation apps',
-                'Try local cuisine and specialties',
-                'Visit both famous landmarks and local neighborhoods'
+                '研究当地习俗和礼仪',
+                '下载离线地图和翻译应用',
+                '尝试当地美食和特色菜',
+                '既要游览著名地标，也要探索当地社区'
             ]
             recommendation['confidence'] = 0.6
-        
+
         return recommendation
     
     def _provide_destination_advice(self, request: Dict[str, Any]) -> Dict[str, Any]:
@@ -665,91 +685,119 @@ class WeatherAnalystAgent(BaseAgent):
             'change of clothes', 'toiletries', 'travel insurance documents'
         ]
         
-        # Duration-based suggestions
+        # 基于旅行时长的建议
         if duration > 7:
-            advice['optional_items'].extend(['laundry detergent', 'extra chargers', 'first aid kit'])
-        
-        # General packing tips
+            advice['optional_items'].extend(['洗衣液', '额外充电器', '急救包'])
+
+        # 通用打包贴士
         advice['packing_tips'] = [
-            'Pack light - you can buy items you forgot',
-            'Bring layers for temperature changes',
-            'Keep essential documents in carry-on',
-            'Leave room for souvenirs',
-            'Check airline baggage restrictions'
+            '轻装出行 - 忘带的物品可以当地购买',
+            '准备多层衣物应对温度变化',
+            '重要文件放在随身行李中',
+            '为纪念品留出空间',
+            '检查航空公司行李限制'
         ]
-        
+
         return advice
 
 class LocalExpertAgent(BaseAgent):
-    """Local expert agent with insider knowledge and real-time insights"""
-    
+    """
+    当地专家智能体
+
+    这个智能体具有深度的本地知识和实时洞察，包括：
+    1. 内部人士信息和小众景点
+    2. 实时更新和当前状况
+    3. 文化指导和礼仪建议
+    4. 当地生活方式和习俗
+    5. 省钱技巧和本地优惠
+
+    适用于大模型技术初级用户：
+    这个类展示了如何为AI智能体构建本地化知识，
+    提供只有当地人才知道的内部信息。
+    """
+
     def __init__(self):
+        """
+        初始化当地专家智能体
+
+        设置智能体的本地专业能力和知识领域
+        """
         super().__init__(
             agent_id="local_expert",
             role=AgentRole.LOCAL_EXPERT,
             capabilities=["local_insights", "real_time_updates", "hidden_gems", "cultural_guidance"]
         )
         
-        # Initialize local knowledge database
+        # 初始化本地知识数据库
         self.local_insights = {
             'london': {
-                'current_events': ['Thames Festival (Sept)', 'Christmas Markets (Dec)', 'Pride (June)'],
+                'current_events': ['泰晤士河节 (9月)', '圣诞市场 (12月)', '骄傲节 (6月)'],
                 'seasonal_tips': {
-                    'spring': ['Cherry blossoms in Regent\'s Park', 'Easter events'],
-                    'summer': ['Outdoor cinema in parks', 'Thames beach events'],
-                    'autumn': ['Fall colors in Hyde Park', 'Halloween events'],
-                    'winter': ['Ice skating rinks', 'Christmas lights on Oxford Street']
+                    'spring': ['摄政公园樱花盛开', '复活节活动'],
+                    'summer': ['公园户外电影', '泰晤士河海滩活动'],
+                    'autumn': ['海德公园秋色', '万圣节活动'],
+                    'winter': ['溜冰场', '牛津街圣诞灯饰']
                 },
-                'local_favorites': ['Borough Market on Saturday mornings', 'Hampstead Heath walks', 'Free museums on Sundays'],
-                'insider_tips': ['Avoid Oxford Street on weekends', 'Book restaurant tables in advance', 'Use citymapper app'],
-                'current_closures': [],  # Would be updated in real-time
-                'price_alerts': ['Transport strikes possible', 'Theatre booking deals midweek'],
-                'safety_updates': ['Standard precautions in crowded areas', 'Beware of pickpockets on tube']
+                'local_favorites': ['周六早晨的博罗市场', '汉普斯特德荒野散步', '周日免费博物馆'],
+                'insider_tips': ['周末避开牛津街', '提前预订餐厅', '使用citymapper应用'],
+                'current_closures': [],  # 实时更新
+                'price_alerts': ['可能有交通罢工', '工作日剧院订票优惠'],
+                'safety_updates': ['拥挤区域标准预防措施', '地铁上小心扒手']
             },
             'paris': {
-                'current_events': ['Fashion Week (Mar/Oct)', 'Nuit Blanche (Oct)', 'Fête de la Musique (June)'],
+                'current_events': ['时装周 (3月/10月)', '白夜节 (10月)', '音乐节 (6月)'],
                 'seasonal_tips': {
-                    'spring': ['Café terraces open', 'Perfect for Seine walks'],
-                    'summer': ['Paris Plages beach event', 'Long museum hours'],
-                    'autumn': ['Harvest season in wine bars', 'Fewer crowds'],
-                    'winter': ['Christmas markets', 'Cozy bistro season']
+                    'spring': ['咖啡馆露台开放', '塞纳河漫步的完美季节'],
+                    'summer': ['巴黎海滩活动', '博物馆延长开放时间'],
+                    'autumn': ['酒吧收获季', '游客较少'],
+                    'winter': ['圣诞市场', '温馨小酒馆季节']
                 },
-                'local_favorites': ['Marché Saint-Germain', 'Evening Seine cruise', 'Père Lachaise at sunset'],
-                'insider_tips': ['Learn basic French greetings', 'Many shops close for lunch', 'Sunday mornings are best for Louvre'],
+                'local_favorites': ['圣日耳曼市场', '塞纳河夜游', '日落时分的拉雪兹神父公墓'],
+                'insider_tips': ['学习基本法语问候', '许多商店午休关门', '周日早晨最适合参观卢浮宫'],
                 'current_closures': [],
-                'price_alerts': ['Metro passes cheaper for longer stays', 'Museum passes save money'],
-                'safety_updates': ['Standard city precautions', 'Keep valuables secure in crowds']
+                'price_alerts': ['长期停留地铁通票更便宜', '博物馆通票省钱'],
+                'safety_updates': ['标准城市预防措施', '人群中保管好贵重物品']
             },
             'tokyo': {
-                'current_events': ['Cherry Blossom season (Mar-May)', 'Summer festivals (July-Aug)', 'Autumn leaves (Nov)'],
+                'current_events': ['樱花季 (3-5月)', '夏日祭典 (7-8月)', '秋叶季 (11月)'],
                 'seasonal_tips': {
-                    'spring': ['Hanami parties in parks', 'Peak tourist season'],
-                    'summer': ['Hot and humid', 'Festival season'],
-                    'autumn': ['Perfect weather', 'Beautiful fall colors'],
-                    'winter': ['Cold but clear', 'Winter illuminations']
+                    'spring': ['公园赏樱聚会', '旅游旺季'],
+                    'summer': ['炎热潮湿', '节庆季节'],
+                    'autumn': ['完美天气', '美丽秋色'],
+                    'winter': ['寒冷但晴朗', '冬季灯饰']
                 },
-                'local_favorites': ['Tsukiji Outer Market breakfast', 'Senso-ji at dawn', 'Golden Gai at night'],
-                'insider_tips': ['Cash is still king', 'Learn basic bow etiquette', 'Download translation app'],
+                'local_favorites': ['筑地外市场早餐', '黎明时分的浅草寺', '夜晚的黄金街'],
+                'insider_tips': ['现金仍是王道', '学习基本鞠躬礼仪', '下载翻译应用'],
                 'current_closures': [],
-                'price_alerts': ['JR Pass must buy before arrival', 'Happy hour deals common'],
-                'safety_updates': ['Extremely safe city', 'Natural disaster preparedness apps recommended']
+                'price_alerts': ['JR通票必须抵达前购买', '欢乐时光优惠常见'],
+                'safety_updates': ['极其安全的城市', '建议下载自然灾害预警应用']
             }
         }
-        
-        # Simulated real-time data sources
+
+        # 模拟实时数据源
         self.real_time_sources = {
-            'events': 'eventbrite_api',
-            'weather': 'local_weather_updates',
-            'transportation': 'transit_apps',
-            'closures': 'official_tourism_sites',
-            'safety': 'government_travel_advisories'
+            'events': 'eventbrite_api',           # 活动信息API
+            'weather': 'local_weather_updates',   # 本地天气更新
+            'transportation': 'transit_apps',     # 交通应用
+            'closures': 'official_tourism_sites', # 官方旅游网站
+            'safety': 'government_travel_advisories'  # 政府旅行建议
         }
-    
+
     def process_message(self, message: Message) -> Optional[Message]:
-        """Process local expertise queries"""
+        """
+        处理本地专业知识查询
+
+        这个方法处理其他智能体发送的本地信息请求，
+        提供内部人士知识和实时更新。
+
+        参数：
+        - message: 接收到的消息对象
+
+        返回：响应消息或None
+        """
         if message.msg_type == MessageType.QUERY:
             content = message.content
-            
+
             if 'local_insights' in content:
                 insights = self._provide_local_insights(content)
                 return Message(
@@ -953,13 +1001,27 @@ class ItineraryPlannerAgent(BaseAgent):
         return None
     
     def generate_recommendation(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate optimized itinerary recommendations"""
+        """
+        生成优化的行程推荐
+
+        这个方法根据用户需求和上下文信息，
+        生成详细的每日行程安排和优化建议。
+
+        参数：
+        - context: 包含目的地、时长、兴趣等信息的上下文字典
+
+        返回：包含每日计划和优化建议的推荐字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何将复杂的规划逻辑
+        分解为可管理的每日计划。
+        """
         destination = context.get('destination', '').lower()
         duration = context.get('duration', 3)
         interests = context.get('interests', [])
         attractions = context.get('attractions', [])
         weather_forecast = context.get('weather_forecast', [])
-        
+
         recommendation = {
             'agent': self.agent_id,
             'type': 'itinerary_planning',
@@ -967,42 +1029,56 @@ class ItineraryPlannerAgent(BaseAgent):
             'daily_plans': [],
             'optimization_notes': []
         }
-        
-        # Create daily itineraries
+
+        # 创建每日行程安排
         for day in range(duration):
             daily_plan = self._create_daily_plan(
-                day + 1, destination, interests, attractions, 
+                day + 1, destination, interests, attractions,
                 weather_forecast[day] if day < len(weather_forecast) else None
             )
             recommendation['daily_plans'].append(daily_plan)
-        
-        # Add optimization suggestions
+
+        # 添加优化建议
         recommendation['optimization_notes'] = [
-            'Schedule adjusted for weather conditions',
-            'Transport time optimized between locations',
-            'Activities grouped by geographical proximity',
-            'Rest periods included for optimal energy management'
+            '根据天气条件调整日程安排',
+            '优化地点间的交通时间',
+            '按地理位置就近安排活动',
+            '包含休息时间以优化体力管理'
         ]
-        
+
         return recommendation
     
     def _create_detailed_itinerary(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a comprehensive daily itinerary"""
+        """
+        创建详细的每日行程安排
+
+        这个方法根据景点列表和用户偏好，
+        创建结构化的每日时间安排。
+
+        参数：
+        - request: 包含景点、偏好、天气等信息的请求字典
+
+        返回：包含每日详细安排的行程字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何将一维的景点列表
+        转换为二维的时间-活动矩阵。
+        """
         attractions = request.get('attractions', [])
         preferences = request.get('preferences', {})
         weather_info = request.get('weather', {})
-        
+
         itinerary = {
             'total_days': len(attractions) if isinstance(attractions, list) else 1,
             'daily_schedules': [],
             'logistics': {
-                'recommended_transport': 'public_transport',
-                'estimated_walking_time': '2-3 hours daily',
-                'rest_breaks': 'Every 2-3 activities'
+                'recommended_transport': '公共交通',
+                'estimated_walking_time': '每日2-3小时',
+                'rest_breaks': '每2-3个活动休息一次'
             }
         }
-        
-        # Create schedule for each day
+
+        # 为每一天创建日程安排
         for day_num in range(itinerary['total_days']):
             daily_schedule = {
                 'day': day_num + 1,
@@ -1010,46 +1086,64 @@ class ItineraryPlannerAgent(BaseAgent):
                 'afternoon': {'time': '13:00-17:00', 'activities': []},
                 'evening': {'time': '18:00-21:00', 'activities': []}
             }
-            
-            # Distribute activities based on type and weather
+
+            # 根据类型和天气分配活动
             if isinstance(attractions, list) and attractions:
-                day_attractions = attractions[:3]  # Limit to 3 per day
-                attractions = attractions[3:]  # Remove used attractions
-                
-                # Assign to time slots
+                day_attractions = attractions[:3]  # 每天限制3个活动
+                attractions = attractions[3:]  # 移除已使用的景点
+
+                # 分配到时间段
                 if day_attractions:
                     daily_schedule['morning']['activities'].append(day_attractions[0])
                 if len(day_attractions) > 1:
                     daily_schedule['afternoon']['activities'].append(day_attractions[1])
                 if len(day_attractions) > 2:
                     daily_schedule['evening']['activities'].append(day_attractions[2])
-            
+
             itinerary['daily_schedules'].append(daily_schedule)
-        
+
         return itinerary
     
-    def _create_daily_plan(self, day_number: int, destination: str, interests: List[str], 
+    def _create_daily_plan(self, day_number: int, destination: str, interests: List[str],
                           attractions: List[str], weather: Optional[Dict]) -> Dict[str, Any]:
-        """Create optimized plan for a single day"""
-        
-        # Determine plan type based on interests
-        plan_type = 'cultural'  # default
-        if 'adventure' in interests or 'outdoor' in interests:
+        """
+        为单日创建优化的计划
+
+        这个方法根据用户兴趣、天气条件和可用景点，
+        为特定的一天创建详细的活动安排。
+
+        参数：
+        - day_number: 天数（第几天）
+        - destination: 目的地名称
+        - interests: 用户兴趣列表
+        - attractions: 可用景点列表
+        - weather: 天气信息字典（可选）
+
+        返回：包含该日详细安排的计划字典
+
+        适用于大模型技术初级用户：
+        这个方法展示了如何根据多个约束条件
+        （兴趣、天气、景点）优化单日安排。
+        """
+
+        # 根据兴趣确定计划类型
+        plan_type = 'cultural'  # 默认文化类型
+        if 'adventure' in interests or 'outdoor' in interests or '冒险' in interests or '户外' in interests:
             plan_type = 'adventure'
-        elif 'family' in interests:
+        elif 'family' in interests or '家庭' in interests:
             plan_type = 'family'
-        elif 'romantic' in interests:
+        elif 'romantic' in interests or '浪漫' in interests:
             plan_type = 'romantic'
-        
+
         template = self.itinerary_templates.get(plan_type, self.itinerary_templates['cultural'])
-        
+
         daily_plan = {
             'day': day_number,
             'theme': plan_type.title(),
             'weather_consideration': self._get_weather_adjustment(weather),
             'schedule': {
                 'morning': {
-                    'time': '9:00 AM - 12:00 PM',
+                    'time': '上午 9:00 - 12:00',
                     'focus': template['morning'][0] if template['morning'] else 'Exploration',
                     'activities': attractions[:2] if attractions else ['Explore local area'],
                     'transport_notes': 'Start with closest attractions'
@@ -1304,69 +1398,81 @@ class CoordinatorAgent(BaseAgent):
         # This would call actual agents in full implementation
         simulated_responses = {
             'travel_advisor': {
-                'expertise_level': 'high',
-                'recommendations': ['Visit top attractions', 'Explore local culture', 'Try regional cuisine'],
+                'expertise_level': '高级',
+                'recommendations': ['参观顶级景点', '探索当地文化', '品尝地方美食'],
                 'confidence': 0.9
             },
             'budget_optimizer': {
-                'cost_analysis': 'Moderate budget required',
-                'savings_opportunities': ['Group discounts', 'Off-season pricing', 'Local transport'],
+                'cost_analysis': '需要适中预算',
+                'savings_opportunities': ['团体折扣', '淡季定价', '本地交通'],
                 'confidence': 0.85
             },
             'weather_analyst': {
-                'forecast_summary': 'Generally favorable conditions',
-                'recommendations': ['Pack layers', 'Plan indoor alternatives', 'Check daily updates'],
+                'forecast_summary': '总体天气条件良好',
+                'recommendations': ['准备多层衣物', '规划室内替代方案', '查看每日更新'],
                 'confidence': 0.8
             },
             'local_expert': {
-                'insider_knowledge': 'High local expertise available',
-                'special_recommendations': ['Hidden gems', 'Local events', 'Cultural tips'],
+                'insider_knowledge': '高水平本地专业知识可用',
+                'special_recommendations': ['小众景点', '本地活动', '文化贴士'],
                 'confidence': 0.9
             },
             'itinerary_planner': {
-                'logistics_assessment': 'Efficient routing possible',
-                'optimization_potential': ['Time savings', 'Transport efficiency', 'Energy management'],
+                'logistics_assessment': '可实现高效路线规划',
+                'optimization_potential': ['节省时间', '交通效率', '体力管理'],
                 'confidence': 0.85
             }
         }
-        
+
         return simulated_responses.get(agent_role, {'confidence': 0.5, 'status': 'limited_data'})
-    
-    def _synthesize_agent_inputs(self, agent_inputs: Dict[str, Dict], context: Dict[str, Any], 
+
+    def _synthesize_agent_inputs(self, agent_inputs: Dict[str, Dict], context: Dict[str, Any],
                                 priorities: List[str]) -> Dict[str, Any]:
-        """Synthesize inputs from all agents into final recommendation"""
+        """
+        将所有智能体的输入综合为最终推荐
+
+        这个方法整合所有专业智能体的建议，
+        生成统一的旅行规划方案。
+
+        参数：
+        - agent_inputs: 各智能体的输入字典
+        - context: 上下文信息
+        - priorities: 优先级列表
+
+        返回：综合后的推荐方案
+        """
         synthesis = {
-            'destination_plan': {},
-            'budget_plan': {},
-            'schedule_plan': {},
-            'contingency_plan': {},
-            'overall_confidence': 0.85
+            'destination_plan': {},      # 目的地计划
+            'budget_plan': {},          # 预算计划
+            'schedule_plan': {},        # 日程计划
+            'contingency_plan': {},     # 应急计划
+            'overall_confidence': 0.85  # 总体置信度
         }
-        
-        # Extract key information from each agent
+
+        # 从各智能体提取关键信息
         if 'travel_advisor' in agent_inputs:
             synthesis['destination_plan'] = {
                 'attractions': agent_inputs['travel_advisor'].get('recommendations', []),
-                'cultural_insights': 'Comprehensive destination expertise applied'
+                'cultural_insights': '已应用全面的目的地专业知识'
             }
-        
+
         if 'budget_optimizer' in agent_inputs:
             synthesis['budget_plan'] = {
-                'cost_estimate': 'Optimized for user budget range',
+                'cost_estimate': '已针对用户预算范围优化',
                 'savings_strategies': agent_inputs['budget_optimizer'].get('savings_opportunities', [])
             }
-        
+
         if 'itinerary_planner' in agent_inputs:
             synthesis['schedule_plan'] = {
-                'daily_structure': 'Optimized for efficiency and enjoyment',
-                'logistics': 'Transport and timing coordinated'
+                'daily_structure': '已优化效率和享受度',
+                'logistics': '交通和时间已协调'
             }
-        
-        # Add contingency planning
+
+        # 添加应急规划
         synthesis['contingency_plan'] = {
-            'weather_backup': 'Indoor alternatives identified',
-            'budget_flexibility': 'Cost adjustment options available',
-            'schedule_adaptation': 'Flexible timing for key activities'
+            'weather_backup': '已识别室内替代方案',
+            'budget_flexibility': '成本调整选项可用',
+            'schedule_adaptation': '关键活动时间安排灵活'
         }
-        
+
         return synthesis

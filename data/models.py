@@ -114,28 +114,54 @@ class Hotel:
 
 @dataclass
 class Transportation:
-    """Transportation option between locations"""
-    mode: str  # 'Walking', 'Public Transport', 'Taxi', 'Uber', etc.
-    estimated_cost: float  # in USD
-    duration: int  # minutes
-    
+    """
+    地点间的交通选择模型
+
+    表示不同地点之间的交通方式选项，包括费用、
+    时长等信息，用于行程规划。
+
+    属性说明：
+    - mode: 交通方式（'步行', '公共交通', '出租车', '网约车'等）
+    - estimated_cost: 预估费用（人民币）
+    - duration: 预计时长（分钟）
+    """
+    mode: str               # 交通方式
+    estimated_cost: float   # 预估费用（人民币）
+    duration: int          # 预计时长（分钟）
+
     def __str__(self) -> str:
-        return f"{self.mode} - ${self.estimated_cost} ({self.duration} min)"
+        """返回交通信息的字符串表示"""
+        return f"{self.mode} - ¥{self.estimated_cost} ({self.duration}分钟)"
 
 @dataclass
 class DayPlan:
-    """Complete plan for a single day"""
-    day: int
-    date: str  # YYYY-MM-DD format
-    weather: Weather
-    attractions: List[Attraction] = None
-    restaurants: List[Attraction] = None
-    activities: List[Attraction] = None
-    transportation: List[Transportation] = None
-    daily_cost: float = 0.0
-    
+    """
+    单日完整行程计划模型
+
+    表示旅行中某一天的完整计划，包括景点、餐厅、
+    活动、交通和费用等所有信息。
+
+    属性说明：
+    - day: 第几天
+    - date: 日期（YYYY-MM-DD格式）
+    - weather: 当天天气信息
+    - attractions: 景点列表
+    - restaurants: 餐厅列表
+    - activities: 活动列表
+    - transportation: 交通安排列表
+    - daily_cost: 当日总费用
+    """
+    day: int                                    # 第几天
+    date: str                                   # 日期（YYYY-MM-DD格式）
+    weather: Weather                            # 当天天气信息
+    attractions: List[Attraction] = None        # 景点列表
+    restaurants: List[Attraction] = None        # 餐厅列表
+    activities: List[Attraction] = None         # 活动列表
+    transportation: List[Transportation] = None # 交通安排列表
+    daily_cost: float = 0.0                    # 当日总费用
+
     def __post_init__(self):
-        """Initialize empty lists if None"""
+        """初始化空列表（如果为None）"""
         if self.attractions is None:
             self.attractions = []
         if self.restaurants is None:
@@ -144,39 +170,58 @@ class DayPlan:
             self.activities = []
         if self.transportation is None:
             self.transportation = []
-    
+
     def get_total_activities(self) -> int:
-        """Get total number of planned activities for the day"""
+        """获取当天计划活动的总数量"""
         return len(self.attractions) + len(self.restaurants) + len(self.activities)
-    
+
     def __str__(self) -> str:
-        return f"Day {self.day} ({self.date}) - {self.get_total_activities()} activities, ${self.daily_cost}"
+        """返回日程计划的字符串表示"""
+        return f"第{self.day}天 ({self.date}) - {self.get_total_activities()}个活动, ¥{self.daily_cost}"
 
 @dataclass
 class TripSummary:
-    """Complete trip summary with all details"""
-    destination: str
-    start_date: date
-    end_date: date
-    total_days: int
-    total_cost: float
-    daily_budget: float
-    currency: str
-    converted_total: float
-    itinerary: List[DayPlan]
-    hotels: List[Hotel]
-    
-    # Additional summary data (added by TripSummaryGenerator)
-    trip_overview: Dict[str, Any] = None
-    weather_summary: Dict[str, Any] = None
-    accommodation_summary: Dict[str, Any] = None
-    expense_summary: Dict[str, Any] = None
-    itinerary_highlights: Dict[str, Any] = None
-    recommendations: Dict[str, Any] = None
-    travel_tips: List[str] = None
-    
+    """
+    完整旅行总结模型
+
+    包含整个旅行的所有详细信息，是系统生成的
+    最终旅行计划的完整表示。
+
+    属性说明：
+    - destination: 目的地
+    - start_date: 开始日期
+    - end_date: 结束日期
+    - total_days: 总天数
+    - total_cost: 总费用
+    - daily_budget: 每日预算
+    - currency: 货币类型
+    - converted_total: 转换后的总费用
+    - itinerary: 行程安排列表
+    - hotels: 酒店选择列表
+    - 其他摘要数据（由TripSummaryGenerator添加）
+    """
+    destination: str                            # 目的地
+    start_date: date                           # 开始日期
+    end_date: date                             # 结束日期
+    total_days: int                            # 总天数
+    total_cost: float                          # 总费用
+    daily_budget: float                        # 每日预算
+    currency: str                              # 货币类型
+    converted_total: float                     # 转换后的总费用
+    itinerary: List[DayPlan]                   # 行程安排列表
+    hotels: List[Hotel]                        # 酒店选择列表
+
+    # 额外的摘要数据（由TripSummaryGenerator添加）
+    trip_overview: Dict[str, Any] = None       # 旅行概览
+    weather_summary: Dict[str, Any] = None     # 天气摘要
+    accommodation_summary: Dict[str, Any] = None # 住宿摘要
+    expense_summary: Dict[str, Any] = None     # 费用摘要
+    itinerary_highlights: Dict[str, Any] = None # 行程亮点
+    recommendations: Dict[str, Any] = None     # 推荐建议
+    travel_tips: List[str] = None              # 旅行贴士
+
     def __post_init__(self):
-        """Initialize empty dictionaries/lists if None"""
+        """初始化空字典/列表（如果为None）"""
         if self.trip_overview is None:
             self.trip_overview = {}
         if self.weather_summary is None:
@@ -191,24 +236,34 @@ class TripSummary:
             self.recommendations = {}
         if self.travel_tips is None:
             self.travel_tips = []
-    
-    def get_cost_per_person(self, group_size: int) -> float:
-        """Calculate cost per person"""
-        return self.converted_total / group_size if group_size > 0 else self.converted_total
-    
-    def get_average_daily_cost(self) -> float:
-        """Calculate average daily cost"""
-        return self.converted_total / self.total_days if self.total_days > 0 else 0.0
-    
-    def __str__(self) -> str:
-        return f"Trip to {self.destination} ({self.total_days} days) - {self.currency} {self.converted_total:.2f}"
 
-# Utility functions for model creation
-def create_mock_weather(temperature: float = 22.0, description: str = "Partly Cloudy", date_str: str = None) -> Weather:
-    """Create a mock weather object for testing"""
+    def get_cost_per_person(self, group_size: int) -> float:
+        """计算人均费用"""
+        return self.converted_total / group_size if group_size > 0 else self.converted_total
+
+    def get_average_daily_cost(self) -> float:
+        """计算平均每日费用"""
+        return self.converted_total / self.total_days if self.total_days > 0 else 0.0
+
+    def __str__(self) -> str:
+        """返回旅行摘要的字符串表示"""
+        return f"{self.destination}之旅 ({self.total_days}天) - {self.currency} {self.converted_total:.2f}"
+
+# 模型创建的工具函数
+def create_mock_weather(temperature: float = 22.0, description: str = "多云", date_str: str = None) -> Weather:
+    """
+    创建模拟天气对象用于测试
+
+    参数：
+    - temperature: 温度（默认22.0°C）
+    - description: 天气描述（默认"多云"）
+    - date_str: 日期字符串（默认当前日期）
+
+    返回：Weather对象
+    """
     if date_str is None:
         date_str = datetime.now().strftime('%Y-%m-%d')
-    
+
     return Weather(
         temperature=temperature,
         description=description,
@@ -218,25 +273,40 @@ def create_mock_weather(temperature: float = 22.0, description: str = "Partly Cl
         date=date_str
     )
 
-def create_mock_attraction(name: str = "Sample Attraction", attraction_type: str = "attraction") -> Attraction:
-    """Create a mock attraction for testing"""
+def create_mock_attraction(name: str = "示例景点", attraction_type: str = "attraction") -> Attraction:
+    """
+    创建模拟景点对象用于测试
+
+    参数：
+    - name: 景点名称（默认"示例景点"）
+    - attraction_type: 景点类型（默认"attraction"）
+
+    返回：Attraction对象
+    """
     return Attraction(
         name=name,
         type=attraction_type,
         rating=4.2,
         price_level=2,
-        address="Sample Address",
-        description="Sample description",
-        estimated_cost=25.0,
+        address="示例地址",
+        description="示例描述",
+        estimated_cost=175.0,  # 调整为人民币价格
         duration=2
     )
 
-def create_mock_hotel(name: str = "Sample Hotel") -> Hotel:
-    """Create a mock hotel for testing"""
+def create_mock_hotel(name: str = "示例酒店") -> Hotel:
+    """
+    创建模拟酒店对象用于测试
+
+    参数：
+    - name: 酒店名称（默认"示例酒店"）
+
+    返回：Hotel对象
+    """
     return Hotel(
         name=name,
         rating=4.0,
-        price_per_night=100.0,
-        address="Sample Hotel Address",
-        amenities=["WiFi", "Breakfast", "Pool"]
+        price_per_night=700.0,  # 调整为人民币价格
+        address="示例酒店地址",
+        amenities=["WiFi", "早餐", "游泳池"]
     )

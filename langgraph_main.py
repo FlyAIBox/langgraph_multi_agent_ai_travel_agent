@@ -98,7 +98,7 @@ def create_sample_request():
         "budget_range": "中等预算",
         "interests": ["文化", "美食", "科技", "历史"],
         "group_size": 2,
-        "travel_dates": "2024-04-15 至 2024-04-20"
+        "travel_dates": "2025-10-15 至 2025-10-20"
     }
 
 def demonstrate_langgraph_system():

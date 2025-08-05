@@ -165,6 +165,12 @@ def demonstrate_langgraph_system():
             print(f"   行程时长: {travel_plan.get('duration')} 天")
             print(f"   规划方法: {travel_plan.get('planning_method')}")
 
+            # 显示详细的规划结果
+            print(f"\n" + "="*80)
+            print("📋 详细旅行规划结果")
+            print("="*80)
+            display_planning_results(result, sample_request)
+
             print(f"\n🎉 演示成功完成!")
             return True
             
@@ -271,16 +277,59 @@ def display_planning_results(result: dict, request: dict):
     print(f"   参与智能体: {len(result['agent_outputs'])}个")
     print(f"   规划状态: {'✅ 完成' if result.get('planning_complete') else '⚠️ 部分完成'}")
 
-    # 智能体贡献
-    print(f"\n🎯 智能体贡献:")
+    # 智能体详细贡献
+    print(f"\n🎯 智能体详细贡献:")
     agent_outputs = result.get("agent_outputs", {})
+
+    # 智能体名称中文映射
+    agent_names_cn = {
+        'travel_advisor': '🏛️ 旅行顾问智能体',
+        'weather_analyst': '🌤️ 天气分析师智能体',
+        'budget_optimizer': '💰 预算优化师智能体',
+        'local_expert': '🏠 当地专家智能体',
+        'itinerary_planner': '📅 行程规划师智能体'
+    }
+
     for agent_name, output in agent_outputs.items():
-        print(f"\n   {agent_name.replace('_', ' ').title().upper()}:")
+        agent_display_name = agent_names_cn.get(agent_name, agent_name.replace('_', ' ').title())
+        print(f"\n{agent_display_name}:")
+        print("-" * 60)
+
         contribution = output.get("response", "无输出")
-        # 截断过长的响应以便显示
-        if len(contribution) > 300:
-            contribution = contribution[:300] + "..."
-        print(f"   {contribution}")
+        status = output.get("status", "未知")
+        timestamp = output.get("timestamp", "")
+
+        print(f"状态: {status.upper()}")
+        print(f"完成时间: {timestamp[:19] if timestamp else '未知'}")
+        print(f"专业建议:")
+
+        # 格式化输出，保持可读性
+        if contribution and contribution != "无输出":
+            # 将长文本分段显示
+            lines = contribution.split('\n')
+            for line in lines[:15]:  # 显示前15行
+                if line.strip():
+                    print(f"  {line.strip()}")
+
+            if len(lines) > 15:
+                print(f"  ... (还有 {len(lines) - 15} 行内容)")
+        else:
+            print("  暂无具体建议")
+
+        print()
+
+    # 显示最终计划摘要
+    travel_plan = result.get("travel_plan", {})
+    if travel_plan.get("agent_contributions"):
+        print(f"\n📋 最终计划整合:")
+        print("-" * 60)
+
+        recommendations = travel_plan.get("recommendations", {})
+        if recommendations:
+            for key, value in recommendations.items():
+                print(f"• {key}: {value}")
+
+        print(f"\n💡 计划摘要: {travel_plan.get('summary', '无摘要')}")
 
     print("\n" + "="*80)
 

@@ -24,7 +24,7 @@ def check_services():
     
     # 检查后端API
     try:
-        response = requests.get("http://localhost:8000/health", timeout=5)
+        response = requests.get("http://localhost:8080/health", timeout=5)
         if response.status_code == 200:
             print("✅ 后端API服务: 正常运行")
             health_data = response.json()
@@ -83,7 +83,7 @@ def create_demo_plan():
     print()
     
     try:
-        response = requests.post("http://localhost:8000/plan", json=demo_data, timeout=10)
+        response = requests.post("http://localhost:8080/plan", json=demo_data, timeout=10)
         if response.status_code == 200:
             result = response.json()
             task_id = result["task_id"]
@@ -111,7 +111,7 @@ def monitor_progress(task_id):
     
     while attempt < max_attempts:
         try:
-            response = requests.get(f"http://localhost:8000/status/{task_id}", timeout=5)
+            response = requests.get(f"http://localhost:8080/status/{task_id}", timeout=5)
             if response.status_code == 200:
                 status = response.json()
                 progress = status['progress']
@@ -194,7 +194,7 @@ def download_result(task_id):
     print("📥 下载完整规划报告...")
     
     try:
-        response = requests.get(f"http://localhost:8000/download/{task_id}", timeout=10)
+        response = requests.get(f"http://localhost:8080/download/{task_id}", timeout=10)
         if response.status_code == 200:
             filename = f"demo_travel_plan_{task_id[:8]}.json"
             with open(f"results/{filename}", 'wb') as f:
@@ -213,8 +213,8 @@ def show_access_info():
     print("🌐 Web界面访问信息:")
     print("="*40)
     print("📱 前端界面: http://localhost:8501")
-    print("📚 API文档:  http://localhost:8000/docs")
-    print("🔧 健康检查: http://localhost:8000/health")
+    print("📚 API文档:  http://localhost:8080/docs")
+    print("🔧 健康检查: http://localhost:8080/health")
     print()
     print("💡 提示:")
     print("   - 在浏览器中打开前端界面进行交互式规划")

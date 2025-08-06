@@ -284,13 +284,13 @@ async def list_tasks():
 
 if __name__ == "__main__":
     print("🚀 启动LangGraph多智能体AI旅行规划API服务器...")
-    print(f"📍 API文档: http://localhost:8000/docs")
-    print(f"🔧 健康检查: http://localhost:8000/health")
-    
+    print(f"📍 API文档: http://localhost:8080/docs")
+    print(f"🔧 健康检查: http://localhost:8080/health")
+
     uvicorn.run(
         "api_server:app",
         host="0.0.0.0",
-        port=8000,
+        port=8080,
         reload=True,
         log_level="info"
     )

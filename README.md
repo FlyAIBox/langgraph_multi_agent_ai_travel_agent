@@ -36,7 +36,7 @@ echo "GOOGLE_API_KEY=your_api_key_here" > .env
 
 ### 3. 访问应用
 - 🌐 前端界面: http://localhost:8501
-- 📚 API文档: http://localhost:8000/docs
+- 📚 API文档: http://localhost:8080/docs
 
 ## 🎯 AI智能体团队
 
@@ -123,7 +123,7 @@ docker-compose logs -f
 import requests
 
 # 创建规划任务
-response = requests.post("http://localhost:8000/plan", json={
+response = requests.post("http://localhost:8080/plan", json={
     "destination": "北京",
     "start_date": "2025-08-18",
     "end_date": "2025-08-25",

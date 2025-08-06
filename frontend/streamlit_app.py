@@ -30,7 +30,7 @@ st.set_page_config(
 
 # API基础URL
 import os
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
 
 def check_api_health():
     """检查API服务状态"""

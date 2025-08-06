@@ -392,6 +392,241 @@ def display_planning_progress(task_id: str):
 
     return None
 
+def generate_markdown_report(result: Dict[str, Any], task_id: str) -> str:
+    """生成Markdown格式的旅行规划报告"""
+    if not result:
+        return "# 旅行规划报告\n\n无可用数据"
+
+    travel_plan = result.get("travel_plan", {})
+    agent_outputs = result.get("agent_outputs", {})
+
+    # 获取基本信息
+    destination = travel_plan.get("destination", "未知")
+    duration = travel_plan.get("duration", 0)
+    group_size = travel_plan.get("group_size", 0)
+    budget_range = travel_plan.get("budget_range", "未知")
+    interests = travel_plan.get("interests", [])
+    travel_dates = travel_plan.get("travel_dates", "未知")
+
+    # 生成Markdown内容
+    markdown_content = f"""# 🌍 {destination}旅行规划报告
+
+## 📋 规划概览
+
+| 项目 | 详情 |
+|------|------|
+| 🎯 目的地 | {destination} |
+| 📅 旅行时间 | {travel_dates} |
+| ⏰ 行程天数 | {duration}天 |
+| 👥 团队人数 | {group_size}人 |
+| 💰 预算类型 | {budget_range} |
+| 🎨 兴趣爱好 | {', '.join(interests) if interests else '无特殊偏好'} |
+
+---
+
+## 🤖 AI智能体专业建议
+
+"""
+
+    # 智能体名称映射
+    agent_names_cn = {
+        'travel_advisor': '🏛️ 旅行顾问',
+        'weather_analyst': '🌤️ 天气分析师',
+        'budget_optimizer': '💰 预算优化师',
+        'local_expert': '🏠 当地专家',
+        'itinerary_planner': '📅 行程规划师'
+    }
+
+    # 添加各智能体的建议
+    for agent_name, output in agent_outputs.items():
+        agent_display_name = agent_names_cn.get(agent_name, agent_name)
+        status = output.get('status', '未知')
+        response = output.get('response', '无输出')
+        timestamp = output.get('timestamp', '')
+
+        markdown_content += f"""### {agent_display_name}
+
+**状态**: {status.upper()}
+**完成时间**: {timestamp[:19] if timestamp else '未知'}
+
+{response}
+
+---
+
+"""
+
+    # 添加生成信息
+    from datetime import datetime
+    markdown_content += f"""## 📄 报告信息
+
+- **任务ID**: `{task_id}`
+- **生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- **生成方式**: LangGraph多智能体AI系统
+- **报告格式**: Markdown
+
+---
+
+*本报告由AI旅行规划智能体自动生成*
+"""
+
+    return markdown_content
+
+def check_pdf_capability() -> bool:
+    """检查PDF生成能力"""
+    try:
+        import reportlab
+        return True
+    except ImportError:
+        return False
+
+def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
+    """生成PDF格式的旅行规划报告"""
+    try:
+        # 尝试导入reportlab
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        from io import BytesIO
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50)
+        styles = getSampleStyleSheet()
+        story = []
+
+        # 自定义样式
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            alignment=1,  # 居中
+            textColor=colors.darkblue
+        )
+
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=15,
+            textColor=colors.darkgreen
+        )
+
+        travel_plan = result.get("travel_plan", {})
+        destination = travel_plan.get("destination", "未知")
+
+        # 标题
+        story.append(Paragraph(f"🌍 {destination} 旅行规划报告", title_style))
+        story.append(Spacer(1, 20))
+
+        # 基本信息表格
+        basic_info = [
+            ['项目', '详情'],
+            ['🎯 目的地', destination],
+            ['📅 旅行日期', travel_plan.get('travel_dates', '未知')],
+            ['⏰ 行程天数', f"{travel_plan.get('duration', 0)}天"],
+            ['👥 团队人数', f"{travel_plan.get('group_size', 0)}人"],
+            ['💰 预算类型', travel_plan.get('budget_range', '未知')],
+            ['🎨 兴趣爱好', ', '.join(travel_plan.get('interests', [])) or '无特殊偏好']
+        ]
+
+        table = Table(basic_info, colWidths=[120, 300])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
+        ]))
+
+        story.append(table)
+        story.append(Spacer(1, 30))
+
+        # AI智能体建议
+        story.append(Paragraph("🤖 AI智能体专业建议", heading_style))
+        story.append(Spacer(1, 15))
+
+        agent_outputs = result.get("agent_outputs", {})
+        agent_names_cn = {
+            'travel_advisor': '🏛️ 旅行顾问',
+            'weather_analyst': '🌤️ 天气分析师',
+            'budget_optimizer': '💰 预算优化师',
+            'local_expert': '🏠 当地专家',
+            'itinerary_planner': '📅 行程规划师',
+            'simple_agent': '🤖 AI规划师',
+            'mock_agent': '🎭 模拟规划师'
+        }
+
+        for agent_name, output in agent_outputs.items():
+            agent_display_name = agent_names_cn.get(agent_name, agent_name)
+            response = output.get('response', '无输出')
+            status = output.get('status', '未知')
+
+            # 智能体标题
+            agent_title = f"{agent_display_name} (状态: {status.upper()})"
+            story.append(Paragraph(agent_title, styles['Heading3']))
+
+            # 智能体内容（处理长文本）
+            if len(response) > 800:
+                content = response[:800] + "\n\n[内容过长，已截取前800字符...]"
+            else:
+                content = response
+
+            # 将内容分段处理
+            paragraphs = content.split('\n\n')
+            for para in paragraphs:
+                if para.strip():
+                    story.append(Paragraph(para.strip(), styles['Normal']))
+                    story.append(Spacer(1, 8))
+
+            story.append(Spacer(1, 20))
+
+        # 报告信息
+        from datetime import datetime
+        story.append(Spacer(1, 30))
+        story.append(Paragraph("📄 报告信息", heading_style))
+
+        report_info = [
+            ['任务ID', task_id],
+            ['生成时间', datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
+            ['生成方式', 'LangGraph多智能体AI系统'],
+            ['报告格式', 'PDF']
+        ]
+
+        info_table = Table(report_info, colWidths=[120, 300])
+        info_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
+        ]))
+
+        story.append(info_table)
+        story.append(Spacer(1, 20))
+
+        # 页脚
+        footer_text = "本报告由LangGraph多智能体AI旅行规划系统自动生成"
+        story.append(Paragraph(footer_text, styles['Normal']))
+
+        # 生成PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    except ImportError:
+        # 如果reportlab不可用，返回None
+        st.warning("PDF生成需要安装reportlab库，请使用Markdown格式下载")
+        return None
+    except Exception as e:
+        st.error(f"PDF生成失败: {str(e)}")
+        return None
+
 def display_planning_result(result: Dict[str, Any]):
     """显示规划结果"""
     if not result:
@@ -472,11 +707,58 @@ def main():
             # 显示结果
             if result:
                 display_planning_result(result)
-                
-                # 提供下载链接
+
+                # 生成和下载报告
                 st.markdown("### 📥 下载报告")
-                download_url = f"{API_BASE_URL}/download/{task_id}"
-                st.markdown(f"[📄 下载完整规划报告]({download_url})")
+
+                # 检查PDF生成能力
+                pdf_available = check_pdf_capability()
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("#### 📄 原始数据")
+                    # 下载JSON格式
+                    download_url = f"{API_BASE_URL}/download/{task_id}"
+                    st.markdown(f"[📊 JSON格式数据]({download_url})")
+                    st.caption("包含完整的AI分析数据")
+
+                with col2:
+                    st.markdown("#### 📝 格式化报告")
+
+                    # Markdown报告
+                    markdown_content = generate_markdown_report(result, task_id)
+                    st.download_button(
+                        label="📥 下载Markdown报告",
+                        data=markdown_content,
+                        file_name=f"travel_plan_{task_id[:8]}.md",
+                        mime="text/markdown",
+                        help="推荐格式，支持所有设备查看"
+                    )
+
+                    # PDF报告
+                    if pdf_available:
+                        if st.button("📄 生成PDF报告", help="生成专业PDF格式报告"):
+                            with st.spinner("正在生成PDF报告..."):
+                                try:
+                                    pdf_content = generate_pdf_report(result, task_id)
+                                    if pdf_content:
+                                        st.download_button(
+                                            label="📥 下载PDF报告",
+                                            data=pdf_content,
+                                            file_name=f"travel_plan_{task_id[:8]}.pdf",
+                                            mime="application/pdf"
+                                        )
+                                        st.success("PDF报告生成成功！")
+                                    else:
+                                        st.error("PDF生成失败，请使用Markdown格式")
+                                except Exception as e:
+                                    st.error(f"PDF生成失败: {str(e)}")
+                                    st.info("💡 建议使用Markdown格式，兼容性更好")
+                    else:
+                        st.info("💡 PDF功能需要安装额外依赖")
+                        st.code("pip install reportlab", language="bash")
+                        st.caption("或直接使用Markdown格式，效果同样出色")
 
 if __name__ == "__main__":
     main()

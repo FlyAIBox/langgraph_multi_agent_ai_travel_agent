@@ -89,3 +89,4 @@ backend/venv/
 frontend/venv/
 */venv/
 */env/
+backend/results/

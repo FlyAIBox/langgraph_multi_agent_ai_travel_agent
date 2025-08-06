@@ -78,3 +78,14 @@ Thumbs.db
 # API keys (if accidentally committed)
 api_keys.py
 secrets.py
+
+# Conda environments
+.conda/
+envs/
+ai-travel-agents/
+
+# Virtual environments (both pip and conda)
+backend/venv/
+frontend/venv/
+*/venv/
+*/env/

@@ -16,8 +16,13 @@
 
 ### 1. 环境准备
 ```bash
-# 设置API密钥
-echo "GEMINI_API_KEY=your_api_key_here" > .env
+# 方法一：使用自动设置脚本（推荐）
+./setup_environment.sh
+
+# 方法二：手动设置
+conda create -n ai-travel-agents python=3.10
+conda activate ai-travel-agents
+echo "GOOGLE_API_KEY=your_api_key_here" > .env
 ```
 
 ### 2. 启动服务
@@ -148,8 +153,9 @@ python demo.py
 
 ## 🔧 环境要求
 
-- Python 3.8+
-- Google Gemini API密钥
+- Python 3.10+ (推荐使用Conda管理)
+- Anaconda或Miniconda
+- Google API密钥 (Gemini)
 - 8GB+ RAM (推荐)
 - 网络连接 (用于实时搜索)
 
@@ -168,8 +174,11 @@ python demo.py
 git clone <repository-url>
 cd langgraph_multi_agent_ai_travel_agent
 
-# 设置API密钥
-echo "GEMINI_API_KEY=your_api_key_here" > .env
+# 一键设置环境
+./setup_environment.sh
+
+# 编辑.env文件，添加API密钥
+# GOOGLE_API_KEY=your_api_key_here
 
 # 启动服务
 ./start_backend.sh    # 终端1

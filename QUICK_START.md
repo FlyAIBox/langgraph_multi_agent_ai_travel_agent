@@ -25,16 +25,22 @@
 
 ### 1. 环境准备
 ```bash
-# 确保您有Google Gemini API密钥
-# 获取地址: https://makersuite.google.com/app/apikey
+# 方法一：一键设置（推荐）
+./setup_environment.sh
 
-# 创建环境变量文件
-echo "GEMINI_API_KEY=your_api_key_here" > .env
+# 方法二：手动设置
+conda create -n ai-travel-agents python=3.10
+conda activate ai-travel-agents
+
+# 获取Google API密钥: https://makersuite.google.com/app/apikey
+echo "GOOGLE_API_KEY=your_api_key_here" > .env
 ```
 
 ### 2. 启动系统
 ```bash
-# 方法一：使用启动脚本（推荐）
+# 确保激活conda环境
+conda activate ai-travel-agents
+
 # 终端1 - 启动后端
 ./start_backend.sh
 

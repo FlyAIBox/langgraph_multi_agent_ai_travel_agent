@@ -150,5 +150,8 @@ fastapi==0.116.1
 # 使用场景：本地开发、生产环境部署 FastAPI 应用
 uvicorn[standard]==0.35.0
 
+# 系统监控
+psutil>=5.9.0
+
 
 

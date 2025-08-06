@@ -105,15 +105,37 @@ async def health_check():
     try:
         # 检查Gemini API密钥
         if not config.GEMINI_API_KEY:
-            return {"status": "error", "message": "Gemini API密钥未配置"}
+            return {
+                "status": "warning", 
+                "message": "Gemini API密钥未配置",
+                "gemini_model": config.GEMINI_MODEL,
+                "api_key_configured": False,
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        # 检查系统资源
+        import psutil
+        memory_info = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(interval=1)
         
         return {
             "status": "healthy",
             "gemini_model": config.GEMINI_MODEL,
-            "api_key_configured": bool(config.GEMINI_API_KEY)
+            "api_key_configured": bool(config.GEMINI_API_KEY),
+            "system_info": {
+                "cpu_usage": f"{cpu_percent}%",
+                "memory_usage": f"{memory_info.percent}%",
+                "memory_available": f"{memory_info.available / 1024 / 1024 / 1024:.1f}GB"
+            },
+            "active_tasks": len(planning_tasks),
+            "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {
+            "status": "error", 
+            "message": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
     """异步执行旅行规划任务"""
@@ -330,13 +352,16 @@ async def list_tasks():
 
 if __name__ == "__main__":
     print("🚀 启动LangGraph多智能体AI旅行规划API服务器...")
-    print(f"📍 API文档: http://localhost:8080/docs")
-    print(f"🔧 健康检查: http://localhost:8080/health")
+    print(f"📍 API文档: http://172.16.1.3:8080/docs")
+    print(f"🔧 健康检查: http://172.16.1.3:8080/health")
 
     uvicorn.run(
         "api_server:app",
-        host="0.0.0.0",
+        host="172.16.1.3",  # 修改为特定IP地址
         port=8080,
         reload=True,
-        log_level="info"
+        log_level="info",
+        timeout_keep_alive=30,  # 增加keep-alive超时
+        timeout_graceful_shutdown=30,  # 优雅关闭超时
+        access_log=True  # 启用访问日志
     )

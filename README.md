@@ -32,11 +32,28 @@ echo "GOOGLE_API_KEY=your_api_key_here" > .env
 
 # 启动前端 (终端2)
 ./start_frontend.sh
+
+# 或者使用一键重启脚本（推荐）
+./restart_services.sh
 ```
 
 ### 3. 访问应用
 - 🌐 前端界面: http://localhost:8501
-- 📚 API文档: http://localhost:8080/docs
+- 📚 API文档: http://172.16.1.3:8080/docs
+- 🔧 健康检查: http://172.16.1.3:8080/health
+
+### 4. 监控和故障排除
+```bash
+# 检查服务状态
+./monitor_services.sh
+
+# 查看实时日志
+tail -f logs/api_server.log
+tail -f logs/streamlit.log
+
+# 重启所有服务
+./restart_services.sh
+```
 
 ## 🎯 AI智能体团队
 

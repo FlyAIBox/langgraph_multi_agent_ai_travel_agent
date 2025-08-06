@@ -54,8 +54,8 @@ fi
 
 # 启动API服务器
 echo "🌐 启动FastAPI服务器..."
-echo "📍 API文档: http://localhost:8080/docs"
-echo "🔧 健康检查: http://localhost:8080/health"
+echo "📍 API文档: http://172.16.1.3:8080/docs"
+echo "🔧 健康检查: http://172.16.1.3:8080/health"
 echo "=================================================="
 
 python api_server.py

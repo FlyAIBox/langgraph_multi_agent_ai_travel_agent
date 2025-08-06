@@ -30,25 +30,37 @@ st.set_page_config(
 
 # API基础URL
 import os
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://172.16.1.3:8080")
 
 def check_api_health():
     """检查API服务状态"""
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=5)
+        # 增加超时时间到10秒
+        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
         return response.status_code == 200, response.json()
+    except requests.exceptions.Timeout:
+        return False, {"error": "API请求超时，请检查后端服务是否正常运行"}
+    except requests.exceptions.ConnectionError:
+        return False, {"error": "无法连接到API服务器，请确保后端服务已启动"}
     except Exception as e:
         return False, {"error": str(e)}
 
 def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
     """创建旅行规划任务"""
     try:
-        response = requests.post(f"{API_BASE_URL}/plan", json=travel_data, timeout=30)
+        # 增加超时时间到60秒
+        response = requests.post(f"{API_BASE_URL}/plan", json=travel_data, timeout=60)
         if response.status_code == 200:
             return response.json()["task_id"]
         else:
             st.error(f"创建任务失败: {response.text}")
             return None
+    except requests.exceptions.Timeout:
+        st.error("创建任务超时，请稍后重试")
+        return None
+    except requests.exceptions.ConnectionError:
+        st.error("无法连接到API服务器，请确保后端服务已启动")
+        return None
     except Exception as e:
         st.error(f"API请求失败: {str(e)}")
         return None
@@ -56,9 +68,16 @@ def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
 def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
     """获取规划状态"""
     try:
-        response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=5)
+        # 增加超时时间到10秒
+        response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=10)
         if response.status_code == 200:
             return response.json()
+        return None
+    except requests.exceptions.Timeout:
+        st.error("获取状态超时，请稍后重试")
+        return None
+    except requests.exceptions.ConnectionError:
+        st.error("无法连接到API服务器，请确保后端服务已启动")
         return None
     except Exception as e:
         st.error(f"获取状态失败: {str(e)}")

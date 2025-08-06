@@ -43,7 +43,7 @@ def check_api_health():
 def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
     """创建旅行规划任务"""
     try:
-        response = requests.post(f"{API_BASE_URL}/plan", json=travel_data, timeout=10)
+        response = requests.post(f"{API_BASE_URL}/plan", json=travel_data, timeout=30)
         if response.status_code == 200:
             return response.json()["task_id"]
         else:

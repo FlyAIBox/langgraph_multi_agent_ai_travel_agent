@@ -30,7 +30,7 @@ st.set_page_config(
 
 # API基础URL
 import os
-API_BASE_URL = os.getenv("API_BASE_URL", "http://172.16.1.3:8080")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
 
 def check_api_health():
     """检查API服务状态"""
@@ -67,21 +67,39 @@ def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
 
 def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
     """获取规划状态"""
-    try:
-        # 增加超时时间到10秒
-        response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=10)
-        if response.status_code == 200:
-            return response.json()
-        return None
-    except requests.exceptions.Timeout:
-        st.error("获取状态超时，请稍后重试")
-        return None
-    except requests.exceptions.ConnectionError:
-        st.error("无法连接到API服务器，请确保后端服务已启动")
-        return None
-    except Exception as e:
-        st.error(f"获取状态失败: {str(e)}")
-        return None
+    max_retries = 3
+    for retry in range(max_retries):
+        try:
+            # 增加超时时间到15秒
+            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=15)
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                st.error("任务不存在")
+                return None
+            else:
+                st.warning(f"状态查询返回 {response.status_code}，正在重试...")
+                continue
+        except requests.exceptions.Timeout:
+            if retry < max_retries - 1:
+                st.warning(f"状态查询超时，正在重试 ({retry + 1}/{max_retries})...")
+                time.sleep(2)  # 等待2秒后重试
+                continue
+            else:
+                st.warning("状态查询超时，但任务可能仍在处理中...")
+                return None
+        except requests.exceptions.ConnectionError:
+            st.error("无法连接到API服务器，请确保后端服务已启动")
+            return None
+        except Exception as e:
+            if retry < max_retries - 1:
+                st.warning(f"状态查询失败，正在重试: {str(e)}")
+                time.sleep(1)
+                continue
+            else:
+                st.error(f"获取状态失败: {str(e)}")
+                return None
+    return None
 
 def display_header():
     """显示页面标题"""
@@ -252,38 +270,47 @@ def create_travel_form():
 def display_planning_progress(task_id: str):
     """显示规划进度"""
     st.markdown("### 🔄 规划进度")
-    
+
     progress_container = st.container()
     status_container = st.container()
-    
+    debug_container = st.container()
+
     # 创建进度条和状态显示
     progress_bar = progress_container.progress(0)
     status_text = status_container.empty()
+    debug_text = debug_container.empty()
     
     # 轮询状态更新
-    max_attempts = 120  # 最多等待2分钟
+    max_attempts = 360  # 最多等待6分钟（每秒轮询一次）
     attempt = 0
     
+    last_known_status = None
+    consecutive_failures = 0
+
     while attempt < max_attempts:
         status = get_planning_status(task_id)
-        
+
         if status:
+            # 重置失败计数
+            consecutive_failures = 0
+            last_known_status = status
+
             progress = status.get("progress", 0)
             current_status = status.get("status", "unknown")
             message = status.get("message", "处理中...")
             current_agent = status.get("current_agent", "")
-            
+
             # 更新进度条
             progress_bar.progress(progress / 100)
-            
+
             # 更新状态文本
             status_text.markdown(f"""
-            **状态**: {current_status}  
-            **当前智能体**: {current_agent}  
-            **消息**: {message}  
+            **状态**: {current_status}
+            **当前智能体**: {current_agent}
+            **消息**: {message}
             **进度**: {progress}%
             """)
-            
+
             # 检查是否完成
             if current_status == "completed":
                 st.success("🎉 旅行规划完成！")
@@ -291,11 +318,78 @@ def display_planning_progress(task_id: str):
             elif current_status == "failed":
                 st.error(f"❌ 规划失败: {message}")
                 return None
-        
+
+        else:
+            # 状态查询失败，但继续尝试
+            consecutive_failures += 1
+            if last_known_status:
+                # 显示最后已知状态
+                progress = last_known_status.get("progress", 0)
+                current_status = last_known_status.get("status", "unknown")
+                message = f"连接中断，正在重试... (失败次数: {consecutive_failures})"
+                current_agent = last_known_status.get("current_agent", "")
+
+                status_text.markdown(f"""
+                **状态**: {current_status} (连接中断)
+                **当前智能体**: {current_agent}
+                **消息**: {message}
+                **进度**: {progress}%
+                """)
+
+            # 如果连续失败太多次，提示用户
+            if consecutive_failures >= 10:
+                st.warning("⚠️ 网络连接不稳定，但任务可能仍在后台处理中...")
+
+        # 显示调试信息
+        debug_text.markdown(f"""
+        <details>
+        <summary>🔍 调试信息</summary>
+
+        - **任务ID**: {task_id}
+        - **尝试次数**: {attempt + 1}/{max_attempts}
+        - **连续失败**: {consecutive_failures}
+        - **API地址**: {API_BASE_URL}
+        - **当前时间**: {time.strftime('%H:%M:%S')}
+        </details>
+        """, unsafe_allow_html=True)
+
         time.sleep(1)
         attempt += 1
     
-    st.error("⏰ 规划超时，请稍后重试")
+    # 超时后提供手动检查选项
+    st.warning("⏰ 自动监控已超时，但任务可能仍在处理中")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 手动检查状态"):
+            final_status = get_planning_status(task_id)
+            if final_status:
+                if final_status.get("status") == "completed":
+                    st.success("🎉 任务已完成！")
+                    return final_status.get("result")
+                else:
+                    st.info(f"任务状态: {final_status.get('status')} - {final_status.get('message')}")
+            else:
+                st.error("无法获取任务状态")
+
+    with col2:
+        if st.button("📥 尝试下载结果"):
+            try:
+                download_url = f"{API_BASE_URL}/download/{task_id}"
+                response = requests.get(download_url, timeout=10)
+                if response.status_code == 200:
+                    st.success("✅ 结果文件可用")
+                    st.download_button(
+                        label="下载规划结果",
+                        data=response.content,
+                        file_name=f"travel_plan_{task_id[:8]}.json",
+                        mime="application/json"
+                    )
+                else:
+                    st.warning("结果文件暂不可用")
+            except Exception as e:
+                st.error(f"下载失败: {str(e)}")
+
     return None
 
 def display_planning_result(result: Dict[str, Any]):

@@ -25,6 +25,11 @@ from langgraph.graph.message import add_messages
 import json
 from datetime import datetime
 
+import sys
+import os
+# 添加backend目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from config.langgraph_config import langgraph_config as config
 
 # 定义多智能体系统的状态结构

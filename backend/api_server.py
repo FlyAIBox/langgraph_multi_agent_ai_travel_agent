@@ -29,6 +29,7 @@ import uvicorn
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from agents.langgraph_agents import LangGraphTravelAgents
+from agents.simple_travel_agent import SimpleTravelAgent, MockTravelAgent
 from config.langgraph_config import langgraph_config as config
 
 # 创建FastAPI应用
@@ -140,6 +141,8 @@ async def health_check():
 async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
     """异步执行旅行规划任务"""
     try:
+        print(f"开始执行任务 {task_id}")
+        
         # 更新任务状态
         planning_tasks[task_id]["status"] = "processing"
         planning_tasks[task_id]["progress"] = 10
@@ -168,15 +171,70 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
         
         await asyncio.sleep(1)
         
+        print(f"任务 {task_id}: 开始LangGraph处理")
+        
         try:
-            # 初始化LangGraph系统
-            travel_agents = LangGraphTravelAgents()
+            # 使用asyncio.wait_for添加超时控制
+            async def run_langgraph():
+                # 初始化LangGraph系统
+                print(f"任务 {task_id}: 初始化LangGraph系统")
+                planning_tasks[task_id]["progress"] = 50
+                planning_tasks[task_id]["message"] = "初始化LangGraph系统..."
+
+                try:
+                    travel_agents = LangGraphTravelAgents()
+                    print(f"任务 {task_id}: LangGraph系统初始化完成")
+
+                    planning_tasks[task_id]["progress"] = 60
+                    planning_tasks[task_id]["message"] = "开始多智能体协作..."
+
+                    print(f"任务 {task_id}: 执行旅行规划")
+                    # 在线程池中执行规划，避免阻塞
+                    import concurrent.futures
+
+                    def run_planning():
+                        return travel_agents.run_travel_planning(langgraph_request)
+
+                    # 使用线程池执行，设置超时
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(run_planning)
+                        try:
+                            # 等待最多4分钟
+                            result = future.result(timeout=240)
+                            print(f"任务 {task_id}: LangGraph执行完成，结果: {result.get('success', False)}")
+                            return result
+                        except concurrent.futures.TimeoutError:
+                            print(f"任务 {task_id}: LangGraph执行超时，尝试使用简化版本")
+                            planning_tasks[task_id]["progress"] = 80
+                            planning_tasks[task_id]["message"] = "LangGraph超时，使用简化版本..."
+
+                            # 使用简化版本作为备选方案
+                            simple_agent = SimpleTravelAgent()
+                            return simple_agent.run_travel_planning(langgraph_request)
+
+                        except Exception as e:
+                            print(f"任务 {task_id}: LangGraph执行异常: {str(e)}，尝试使用简化版本")
+                            planning_tasks[task_id]["progress"] = 80
+                            planning_tasks[task_id]["message"] = "LangGraph异常，使用简化版本..."
+
+                            # 使用简化版本作为备选方案
+                            simple_agent = SimpleTravelAgent()
+                            return simple_agent.run_travel_planning(langgraph_request)
+
+                except Exception as e:
+                    print(f"任务 {task_id}: 初始化LangGraph失败: {str(e)}")
+                    return {
+                        "success": False,
+                        "error": f"初始化失败: {str(e)}",
+                        "travel_plan": {},
+                        "agent_outputs": {},
+                        "planning_complete": False
+                    }
             
-            planning_tasks[task_id]["progress"] = 70
-            planning_tasks[task_id]["message"] = "执行多智能体规划..."
+            # 设置300秒超时（5分钟）
+            result = await asyncio.wait_for(run_langgraph(), timeout=300.0)
             
-            # 执行规划
-            result = travel_agents.run_travel_planning(langgraph_request)
+            print(f"任务 {task_id}: LangGraph处理完成")
             
             if result["success"]:
                 planning_tasks[task_id]["status"] = "completed"
@@ -191,9 +249,41 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                 planning_tasks[task_id]["status"] = "failed"
                 planning_tasks[task_id]["message"] = f"规划失败: {result.get('error', '未知错误')}"
                 
+        except asyncio.TimeoutError:
+            print(f"任务 {task_id}: LangGraph处理超时")
+            # 超时处理，提供简化响应
+            simplified_result = {
+                "success": True,
+                "travel_plan": {
+                    "destination": travel_request["destination"],
+                    "duration": travel_request.get("duration", 7),
+                    "budget_range": travel_request["budget_range"],
+                    "group_size": travel_request["group_size"],
+                    "travel_dates": f"{travel_request['start_date']} 至 {travel_request['end_date']}",
+                    "summary": f"为{travel_request['destination']}制定的{travel_request.get('duration', 7)}天旅行计划（快速模式）"
+                },
+                "agent_outputs": {
+                    "system_message": {
+                        "response": f"由于系统负载较高，为您提供快速旅行计划。目的地：{travel_request['destination']}，预算：{travel_request['budget_range']}，人数：{travel_request['group_size']}人。建议您关注当地的热门景点、特色美食和文化体验。",
+                        "timestamp": datetime.now().isoformat(),
+                        "status": "completed"
+                    }
+                },
+                "total_iterations": 1,
+                "planning_complete": True
+            }
+            
+            planning_tasks[task_id]["status"] = "completed"
+            planning_tasks[task_id]["progress"] = 100
+            planning_tasks[task_id]["message"] = "旅行规划完成（快速模式）"
+            planning_tasks[task_id]["result"] = simplified_result
+            
+            # 保存简化结果
+            await save_planning_result(task_id, simplified_result, langgraph_request)
+                
         except Exception as agent_error:
             # 如果LangGraph系统出错，提供一个简化的响应
-            print(f"LangGraph系统错误: {str(agent_error)}")
+            print(f"任务 {task_id}: LangGraph系统错误: {str(agent_error)}")
             
             # 创建一个简化的旅行计划作为回退
             simplified_result = {
@@ -208,7 +298,7 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                 },
                 "agent_outputs": {
                     "system_message": {
-                        "response": f"系统正在维护中，为您提供基础的旅行计划框架。目的地：{travel_request['destination']}，预算：{travel_request['budget_range']}，人数：{travel_request['group_size']}人。",
+                        "response": f"系统正在维护中，为您提供基础的旅行计划框架。目的地：{travel_request['destination']}，预算：{travel_request['budget_range']}，人数：{travel_request['group_size']}人。建议提前了解当地的交通、住宿和主要景点信息。",
                         "timestamp": datetime.now().isoformat(),
                         "status": "completed"
                     }
@@ -225,10 +315,12 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
             # 保存简化结果
             await save_planning_result(task_id, simplified_result, langgraph_request)
             
+        print(f"任务 {task_id}: 执行完成")
+            
     except Exception as e:
         planning_tasks[task_id]["status"] = "failed"
         planning_tasks[task_id]["message"] = f"系统错误: {str(e)}"
-        print(f"规划任务执行错误: {str(e)}")
+        print(f"任务 {task_id}: 规划任务执行错误: {str(e)}")
 
 async def save_planning_result(task_id: str, result: Dict[str, Any], request: Dict[str, Any]):
     """保存规划结果到文件"""
@@ -271,7 +363,7 @@ async def create_travel_plan(request: TravelRequest, background_tasks: Backgroun
         duration = (end_date - start_date).days + 1
         
         # 转换请求为字典
-        travel_request = request.dict()
+        travel_request = request.model_dump()
         travel_request["duration"] = duration
         
         # 初始化任务状态
@@ -301,19 +393,29 @@ async def create_travel_plan(request: TravelRequest, background_tasks: Backgroun
 @app.get("/status/{task_id}", response_model=PlanningStatus)
 async def get_planning_status(task_id: str):
     """获取规划任务状态"""
-    if task_id not in planning_tasks:
-        raise HTTPException(status_code=404, detail="任务不存在")
-    
-    task = planning_tasks[task_id]
-    
-    return PlanningStatus(
-        task_id=task_id,
-        status=task["status"],
-        progress=task["progress"],
-        current_agent=task["current_agent"],
-        message=task["message"],
-        result=task["result"]
-    )
+    try:
+        print(f"状态查询: {task_id}")
+
+        if task_id not in planning_tasks:
+            print(f"任务不存在: {task_id}")
+            raise HTTPException(status_code=404, detail="任务不存在")
+
+        task = planning_tasks[task_id]
+        print(f"任务状态: {task['status']}, 进度: {task['progress']}%")
+
+        return PlanningStatus(
+            task_id=task_id,
+            status=task["status"],
+            progress=task["progress"],
+            current_agent=task["current_agent"],
+            message=task["message"],
+            result=task["result"]
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"状态查询错误: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"状态查询失败: {str(e)}")
 
 @app.get("/download/{task_id}")
 async def download_result(task_id: str):
@@ -350,14 +452,115 @@ async def list_tasks():
         ]
     }
 
+@app.post("/simple-plan")
+async def simple_travel_plan(request: TravelRequest, background_tasks: BackgroundTasks):
+    """简化版旅行规划（使用简化智能体）"""
+    try:
+        # 生成任务ID
+        task_id = str(uuid.uuid4())
+
+        # 计算旅行天数
+        from datetime import datetime
+        start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
+        duration = (end_date - start_date).days + 1
+
+        # 转换请求为字典
+        travel_request = request.model_dump()
+        travel_request["duration"] = duration
+
+        # 初始化任务状态
+        planning_tasks[task_id] = {
+            "task_id": task_id,
+            "status": "started",
+            "progress": 0,
+            "current_agent": "简化智能体",
+            "message": "任务已创建，准备开始简化规划...",
+            "created_at": datetime.now().isoformat(),
+            "request": travel_request,
+            "result": None
+        }
+
+        # 添加后台任务
+        async def run_simple_planning():
+            try:
+                planning_tasks[task_id]["status"] = "processing"
+                planning_tasks[task_id]["progress"] = 30
+                planning_tasks[task_id]["message"] = "正在使用简化智能体规划..."
+
+                simple_agent = SimpleTravelAgent()
+                result = simple_agent.run_travel_planning(travel_request)
+
+                if result["success"]:
+                    planning_tasks[task_id]["status"] = "completed"
+                    planning_tasks[task_id]["progress"] = 100
+                    planning_tasks[task_id]["message"] = "简化规划完成！"
+                    planning_tasks[task_id]["result"] = result
+
+                    # 保存结果到文件
+                    await save_planning_result(task_id, result, travel_request)
+                else:
+                    planning_tasks[task_id]["status"] = "failed"
+                    planning_tasks[task_id]["message"] = f"简化规划失败: {result.get('error', '未知错误')}"
+
+            except Exception as e:
+                planning_tasks[task_id]["status"] = "failed"
+                planning_tasks[task_id]["message"] = f"简化规划异常: {str(e)}"
+
+        background_tasks.add_task(run_simple_planning)
+
+        return PlanningResponse(
+            task_id=task_id,
+            status="started",
+            message="简化版旅行规划任务已启动"
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"创建简化规划任务失败: {str(e)}")
+
+@app.post("/mock-plan")
+async def mock_travel_plan(request: TravelRequest):
+    """模拟旅行规划（用于测试，立即返回结果）"""
+    try:
+        # 生成测试任务ID
+        task_id = str(uuid.uuid4())
+
+        print(f"模拟任务 {task_id}: 开始")
+
+        # 计算旅行天数
+        from datetime import datetime
+        start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
+        duration = (end_date - start_date).days + 1
+
+        # 转换请求为字典
+        travel_request = request.model_dump()
+        travel_request["duration"] = duration
+
+        # 使用模拟智能体
+        mock_agent = MockTravelAgent()
+        result = mock_agent.run_travel_planning(travel_request)
+
+        print(f"模拟任务 {task_id}: 完成")
+
+        return {
+            "task_id": task_id,
+            "status": "completed",
+            "message": "模拟规划完成",
+            "result": result
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"模拟规划失败: {str(e)}")
+
 if __name__ == "__main__":
     print("🚀 启动LangGraph多智能体AI旅行规划API服务器...")
-    print(f"📍 API文档: http://172.16.1.3:8080/docs")
-    print(f"🔧 健康检查: http://172.16.1.3:8080/health")
+    print(f"📍 API文档: http://localhost:8080/docs")
+    print(f"🔧 健康检查: http://localhost:8080/health")
 
     uvicorn.run(
         "api_server:app",
-        host="172.16.1.3",  # 修改为特定IP地址
+        host="0.0.0.0",  # 监听所有接口
         port=8080,
         reload=True,
         log_level="info",

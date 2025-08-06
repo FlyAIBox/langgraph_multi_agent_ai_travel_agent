@@ -1,4 +1,4 @@
-# LangGraph多智能体AI旅行规划系统 - Web版本
+# AI旅行规划智能体 - Web版本
 
 🌍 基于LangGraph框架、Google Gemini Flash-2.0和DuckDuckGo搜索的智能旅行规划Web应用
 

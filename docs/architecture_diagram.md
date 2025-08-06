@@ -1,4 +1,4 @@
-# LangGraph多智能体AI旅行规划系统
+# AI旅行规划智能体
 ## ASCII架构图
 
 ```
@@ -263,7 +263,7 @@
 
 ## 系统概述
 
-LangGraph多智能体AI旅行规划系统代表了协作AI智能体的最先进实现，它们共同工作来创建全面的旅行计划。该系统基于LangGraph框架构建，集成了Google Gemini Flash-2.0和DuckDuckGo搜索，通过协调的多智能体工作流提供实时、智能的旅行规划。
+AI旅行规划智能体代表了协作AI智能体的最先进实现，它们共同工作来创建全面的旅行计划。该系统基于LangGraph框架构建，集成了Google Gemini Flash-2.0和DuckDuckGo搜索，通过协调的多智能体工作流提供实时、智能的旅行规划。
 
 ### 核心组件
 

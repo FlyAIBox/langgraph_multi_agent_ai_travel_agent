@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LangGraph多智能体AI旅行规划系统 - FastAPI后端服务
+AI旅行规划智能体 - FastAPI后端服务
 
 这个模块提供RESTful API接口，将LangGraph多智能体系统包装为Web服务。
 支持异步处理和实时状态更新。

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LangGraph多智能体AI旅行规划系统 - Streamlit前端
+AI旅行规划智能体 - Streamlit前端
 
 这个模块提供基于Streamlit的Web前端界面，用户可以通过浏览器
 与LangGraph多智能体旅行规划系统进行交互。
@@ -22,7 +22,7 @@ import pandas as pd
 
 # 页面配置
 st.set_page_config(
-    page_title="LangGraph多智能体AI旅行规划师",
+    page_title="AI旅行规划智能体",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -105,7 +105,7 @@ def display_header():
     """显示页面标题"""
     st.markdown("""
     <div style="text-align: center; padding: 2rem 0;">
-        <h1>🌍 LangGraph多智能体AI旅行规划师</h1>
+        <h1>🌍 AI旅行规划智能体</h1>
         <p style="font-size: 1.2rem; color: #666;">
             🤖 由Google Gemini Flash-2.0和DuckDuckGo搜索驱动的智能旅行规划系统
         </p>

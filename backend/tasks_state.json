@@ -1,0 +1,31 @@
+{
+  "5009a745-c434-40d4-b37b-7e04cb95ccd5": {
+    "task_id": "5009a745-c434-40d4-b37b-7e04cb95ccd5",
+    "status": "started",
+    "progress": 0,
+    "current_agent": "系统初始化",
+    "message": "任务已创建，准备开始规划...",
+    "created_at": "2025-08-07T12:11:21.089847",
+    "request": {
+      "destination": "杭州",
+      "start_date": "2025-08-14",
+      "end_date": "2025-08-17",
+      "budget_range": "经济型 (300-800元/天)",
+      "group_size": 2,
+      "interests": [
+        "运动健身",
+        "摄影打卡"
+      ],
+      "dietary_restrictions": "",
+      "activity_level": "适中",
+      "travel_style": "探索者",
+      "transportation_preference": "公共交通",
+      "accommodation_preference": "酒店",
+      "special_occasion": "",
+      "special_requirements": "",
+      "currency": "CNY",
+      "duration": 4
+    },
+    "result": null
+  }
+}

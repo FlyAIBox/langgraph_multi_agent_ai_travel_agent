@@ -35,15 +35,18 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
 def check_api_health():
     """检查API服务状态"""
     try:
-        # 增加超时时间到10秒
-        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
-        return response.status_code == 200, response.json()
+        # 增加超时时间到15秒
+        response = requests.get(f"{API_BASE_URL}/health", timeout=15)
+        if response.status_code == 200:
+            return True, response.json()
+        else:
+            return False, {"error": f"API服务返回错误状态: {response.status_code}"}
     except requests.exceptions.Timeout:
-        return False, {"error": "API请求超时，请检查后端服务是否正常运行"}
+        return False, {"error": "API请求超时，后端服务可能正在启动中，请稍等片刻后刷新页面"}
     except requests.exceptions.ConnectionError:
-        return False, {"error": "无法连接到API服务器，请确保后端服务已启动"}
+        return False, {"error": "无法连接到API服务器，请确保后端服务已启动 (运行: ./start_backend.sh)"}
     except Exception as e:
-        return False, {"error": str(e)}
+        return False, {"error": f"连接错误: {str(e)}"}
 
 def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
     """创建旅行规划任务"""
@@ -475,40 +478,51 @@ def generate_markdown_report(result: Dict[str, Any], task_id: str) -> str:
 
 def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
     """获取规划状态"""
-    max_retries = 3
+    max_retries = 2  # 减少重试次数，避免过长等待
     for retry in range(max_retries):
         try:
-            # 增加超时时间到15秒
-            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=15)
+            # 增加超时时间到30秒
+            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=30)
             if response.status_code == 200:
                 return response.json()
-            else:
-                st.warning(f"获取状态失败: HTTP {response.status_code}")
+            elif response.status_code == 404:
+                st.warning(f"任务 {task_id} 不存在")
                 return None
+            else:
+                if retry < max_retries - 1:
+                    st.warning(f"获取状态失败: HTTP {response.status_code}，正在重试...")
+                    time.sleep(3)
+                else:
+                    st.error(f"获取状态失败: HTTP {response.status_code}")
+                    return None
         except requests.exceptions.Timeout:
             if retry < max_retries - 1:
                 st.warning(f"请求超时，正在重试 ({retry + 1}/{max_retries})...")
-                time.sleep(2)
+                time.sleep(3)
             else:
-                st.error("请求超时，请检查网络连接")
+                st.error("⏰ 请求超时，后端可能正在处理中，请稍后手动刷新页面查看结果")
                 return None
+        except requests.exceptions.ConnectionError:
+            st.error("🔌 无法连接到后端服务，请确保后端服务已启动")
+            return None
         except Exception as e:
             if retry < max_retries - 1:
                 st.warning(f"请求失败，正在重试 ({retry + 1}/{max_retries}): {str(e)}")
-                time.sleep(2)
+                time.sleep(3)
             else:
                 st.error(f"获取状态失败: {str(e)}")
                 return None
     return None
 
 def get_planning_result(task_id: str) -> Optional[Dict[str, Any]]:
-    """获取规划结果"""
+    """获取规划结果 - 从状态查询中获取结果"""
     try:
-        response = requests.get(f"{API_BASE_URL}/result/{task_id}", timeout=30)
-        if response.status_code == 200:
-            return response.json()
+        # 从状态查询中获取结果
+        status_info = get_planning_status(task_id)
+        if status_info and status_info.get("result"):
+            return status_info["result"]
         else:
-            st.error(f"获取结果失败: HTTP {response.status_code}")
+            st.warning("结果尚未准备好或任务未完成")
             return None
     except Exception as e:
         st.error(f"获取结果失败: {str(e)}")
@@ -598,10 +612,39 @@ def main():
     if not is_healthy:
         st.error("🚨 后端服务连接失败")
         st.error(health_info.get("error", "未知错误"))
-        st.info("请确保后端服务已启动：`cd backend && python api_server.py`")
-        return
 
-    st.success("✅ 后端服务连接正常")
+        with st.expander("🔧 后端服务启动指南", expanded=True):
+            st.markdown("""
+            ### 启动后端服务
+
+            请在终端中执行以下命令：
+
+            ```bash
+            # 方法1: 使用启动脚本
+            ./start_backend.sh
+
+            # 方法2: 手动启动
+            cd backend
+            python api_server.py
+            ```
+
+            ### 检查服务状态
+
+            启动后，您可以访问以下地址检查服务状态：
+            - 健康检查: http://localhost:8080/health
+            - API文档: http://localhost:8080/docs
+
+            ### 常见问题
+
+            1. **端口被占用**: 检查是否有其他程序使用8080端口
+            2. **依赖缺失**: 确保已安装所有依赖 `pip install -r backend/requirements.txt`
+            3. **环境变量**: 确保设置了必要的API密钥
+            """)
+
+        # 仍然允许用户使用手动查询功能
+        st.info("💡 如果您之前有完成的任务，可以使用下面的手动查询功能")
+    else:
+        st.success("✅ 后端服务连接正常")
 
     # 侧边栏 - 旅行规划表单
     with st.sidebar:
@@ -622,17 +665,37 @@ def main():
 
         # 预算范围
         budget_range = st.selectbox("💰 预算范围", [
-            "经济型 (500-1000元/天)",
-            "中等预算 (1000-2000元/天)",
-            "高端旅行 (2000-5000元/天)",
-            "奢华体验 (5000元以上/天)"
+            "经济型 (300-800元/天)",
+            "舒适型 (800-1500元/天)",
+            "中等预算 (1500-3000元/天)",
+            "高端旅行 (3000-6000元/天)",
+            "奢华体验 (6000元以上/天)"
+        ])
+
+        # 住宿偏好
+        accommodation = st.selectbox("🏨 住宿偏好", [
+            "经济型酒店/青旅",
+            "商务酒店",
+            "精品酒店",
+            "民宿/客栈",
+            "度假村",
+            "奢华酒店"
+        ])
+
+        # 交通偏好
+        transportation = st.selectbox("🚗 交通偏好", [
+            "公共交通为主",
+            "混合交通方式",
+            "租车自驾",
+            "包车/专车",
+            "高铁/飞机"
         ])
 
         # 兴趣爱好
         st.markdown("🎨 **兴趣爱好**")
         interests = []
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.checkbox("🏛️ 历史文化"):
                 interests.append("历史文化")
@@ -642,6 +705,8 @@ def main():
                 interests.append("自然风光")
             if st.checkbox("🎭 艺术表演"):
                 interests.append("艺术表演")
+            if st.checkbox("🏖️ 海滨度假"):
+                interests.append("海滨度假")
 
         with col2:
             if st.checkbox("🛍️ 购物娱乐"):
@@ -652,6 +717,20 @@ def main():
                 interests.append("摄影打卡")
             if st.checkbox("🧘 休闲放松"):
                 interests.append("休闲放松")
+            if st.checkbox("🎪 主题乐园"):
+                interests.append("主题乐园")
+
+        with col3:
+            if st.checkbox("🏔️ 登山徒步"):
+                interests.append("登山徒步")
+            if st.checkbox("🎨 文艺创作"):
+                interests.append("文艺创作")
+            if st.checkbox("🍷 品酒美食"):
+                interests.append("品酒美食")
+            if st.checkbox("🏛️ 博物馆"):
+                interests.append("博物馆")
+            if st.checkbox("🌃 夜生活"):
+                interests.append("夜生活")
 
         # 提交按钮
         if st.button("🚀 开始规划", type="primary", use_container_width=True):
@@ -667,12 +746,70 @@ def main():
                     "end_date": end_date.strftime("%Y-%m-%d"),
                     "group_size": group_size,
                     "budget_range": budget_range,
-                    "interests": interests
+                    "interests": interests,
+                    "accommodation": accommodation,
+                    "transportation": transportation,
+                    "duration": (end_date - start_date).days,
+                    "travel_dates": f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
                 }
 
                 # 存储到session state
                 st.session_state.travel_data = travel_data
                 st.session_state.planning_started = True
+
+    # 手动查询结果功能
+    with st.expander("🔍 手动查询任务结果", expanded=False):
+        st.markdown("如果之前的规划任务超时，您可以在这里手动查询结果：")
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            manual_task_id = st.text_input("输入任务ID", placeholder="例如: task_20250807_123456")
+        with col2:
+            if st.button("查询结果", type="secondary"):
+                if manual_task_id:
+                    with st.spinner("正在查询结果..."):
+                        result = get_planning_result(manual_task_id)
+                        if result:
+                            st.success("✅ 找到结果！")
+                            display_planning_result(result)
+
+                            # 显示下载选项
+                            st.markdown("### 📥 下载报告")
+
+                            col1, col2 = st.columns(2)
+
+                            with col1:
+                                st.markdown("#### 📄 原始数据")
+                                download_url = f"{API_BASE_URL}/download/{manual_task_id}"
+                                st.markdown(f"[📊 JSON格式数据]({download_url})")
+                                st.caption("包含完整的AI分析数据")
+
+                            with col2:
+                                st.markdown("#### 📝 Markdown报告")
+
+                                travel_plan = result.get("travel_plan", {})
+                                destination = travel_plan.get("destination", "未知目的地").replace("/", "-").replace("\\", "-")
+                                group_size = travel_plan.get("group_size", 1)
+                                filename_base = f"{destination}-{group_size}人-旅行规划指南"
+
+                                markdown_content = generate_markdown_report(result, manual_task_id)
+                                md_filename = f"{filename_base}.md"
+                                saved_md_path = save_report_to_results(markdown_content, md_filename)
+
+                                st.download_button(
+                                    label="📥 下载Markdown报告",
+                                    data=markdown_content,
+                                    file_name=md_filename,
+                                    mime="text/markdown",
+                                    help="推荐格式，支持所有设备查看"
+                                )
+
+                                if saved_md_path:
+                                    st.success(f"✅ 报告已保存到: {saved_md_path}")
+                        else:
+                            st.error("❌ 未找到该任务的结果")
+                else:
+                    st.warning("请输入任务ID")
 
     # 主内容区域
     if hasattr(st.session_state, 'planning_started') and st.session_state.planning_started:
@@ -693,8 +830,9 @@ def main():
             status_placeholder = st.empty()
 
             # 轮询任务状态
-            max_attempts = 120  # 最多等待10分钟
+            max_attempts = 60  # 最多等待5分钟，每次等待5秒
             attempt = 0
+            last_progress = 0
 
             while attempt < max_attempts:
                 status_info = get_planning_status(task_id)
@@ -714,11 +852,17 @@ def main():
                     else:
                         status_placeholder.info(f"📋 状态: {message}")
 
-                    if status == "completed":
-                        st.success("🎉 规划完成！")
+                    # 如果进度有更新，重置计数器
+                    if progress > last_progress:
+                        last_progress = progress
+                        attempt = 0  # 重置计数器
 
-                        # 获取结果
-                        result = get_planning_result(task_id)
+                    if status == "completed":
+                        progress_placeholder.progress(1.0, text="进度: 100% - 完成!")
+                        status_placeholder.success("🎉 规划完成！")
+
+                        # 从状态信息中直接获取结果
+                        result = status_info.get("result")
                         if result:
                             # 显示结果
                             display_planning_result(result)
@@ -768,10 +912,12 @@ def main():
 
                     elif status == "failed":
                         error_msg = status_info.get("error", "未知错误")
-                        st.error(f"❌ 规划失败: {error_msg}")
+                        progress_placeholder.empty()
+                        status_placeholder.error(f"❌ 规划失败: {error_msg}")
+                        st.error("规划过程中出现错误，请重新尝试")
                         break
 
-                    elif status == "processing":
+                    elif status in ["processing", "running", "pending"]:
                         # 继续等待
                         time.sleep(5)
                         attempt += 1
@@ -781,11 +927,19 @@ def main():
                         time.sleep(5)
                         attempt += 1
                 else:
-                    st.error("❌ 无法获取任务状态")
-                    break
+                    # 无法获取状态，可能是网络问题
+                    attempt += 1
+                    if attempt < max_attempts:
+                        status_placeholder.warning(f"⚠️ 无法获取任务状态，正在重试... ({attempt}/{max_attempts})")
+                        time.sleep(5)
+                    else:
+                        status_placeholder.error("❌ 无法获取任务状态")
+                        break
 
             if attempt >= max_attempts:
-                st.warning("⏰ 规划超时，请稍后查看结果")
+                progress_placeholder.empty()
+                status_placeholder.warning("⏰ 规划超时，后端可能仍在处理中")
+                st.info("💡 您可以稍后刷新页面查看结果，或重新提交规划请求")
         else:
             st.error("❌ 创建规划任务失败")
 

@@ -1,6 +1,6 @@
 # LangGraph多智能体配置文件
 """
-LangGraph多智能体系统配置
+AI旅行规划智能体配置
 
 这个配置文件定义了整个多智能体系统的核心参数，包括：
 - Google Gemini大语言模型的配置
@@ -22,7 +22,7 @@ load_dotenv()
 
 class LangGraphConfig:
     """
-    LangGraph多智能体系统配置类
+    AI旅行规划智能体配置类
 
     这个类集中管理所有系统配置参数，包括：
     - API密钥和模型设置

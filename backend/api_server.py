@@ -2,12 +2,12 @@
 """
 AI旅行规划智能体 - FastAPI后端服务
 
-这个模块提供RESTful API接口，将LangGraph多智能体系统包装为Web服务。
+这个模块提供RESTful API接口，将AI旅行规划智能体包装为Web服务。
 支持异步处理和实时状态更新。
 
 主要功能：
 1. 接收前端的旅行规划请求
-2. 调用LangGraph多智能体系统
+2. 调用AI旅行规划智能体
 3. 返回规划结果和状态更新
 4. 提供文件下载服务
 """
@@ -50,6 +50,34 @@ app.add_middleware(
 
 # 全局变量存储任务状态
 planning_tasks: Dict[str, Dict[str, Any]] = {}
+
+# 任务持久化文件
+TASKS_FILE = "tasks_state.json"
+
+def save_tasks_state():
+    """保存任务状态到文件"""
+    try:
+        with open(TASKS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(planning_tasks, f, ensure_ascii=False, indent=2, default=str)
+    except Exception as e:
+        print(f"保存任务状态失败: {e}")
+
+def load_tasks_state():
+    """从文件加载任务状态"""
+    global planning_tasks
+    try:
+        if os.path.exists(TASKS_FILE):
+            with open(TASKS_FILE, 'r', encoding='utf-8') as f:
+                planning_tasks = json.load(f)
+            print(f"✅ 已加载 {len(planning_tasks)} 个任务状态")
+        else:
+            print("📝 任务状态文件不存在，使用空状态")
+    except Exception as e:
+        print(f"加载任务状态失败: {e}")
+        planning_tasks = {}
+
+# 启动时加载任务状态
+load_tasks_state()
 
 class TravelRequest(BaseModel):
     """旅行规划请求模型"""
@@ -146,7 +174,7 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
         # 更新任务状态
         planning_tasks[task_id]["status"] = "processing"
         planning_tasks[task_id]["progress"] = 10
-        planning_tasks[task_id]["message"] = "正在初始化LangGraph多智能体系统..."
+        planning_tasks[task_id]["message"] = "正在初始化AI旅行规划智能体..."
         
         # 模拟处理时间，避免立即完成
         await asyncio.sleep(1)
@@ -241,6 +269,9 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                 planning_tasks[task_id]["progress"] = 100
                 planning_tasks[task_id]["message"] = "旅行规划完成！"
                 planning_tasks[task_id]["result"] = result
+
+                # 保存任务状态
+                save_tasks_state()
                 
                 # 保存结果到文件
                 await save_planning_result(task_id, result, langgraph_request)
@@ -377,6 +408,9 @@ async def create_travel_plan(request: TravelRequest, background_tasks: Backgroun
             "request": travel_request,
             "result": None
         }
+
+        # 保存任务状态
+        save_tasks_state()
         
         # 添加后台任务
         background_tasks.add_task(run_planning_task, task_id, travel_request)
@@ -562,7 +596,7 @@ if __name__ == "__main__":
         "api_server:app",
         host="0.0.0.0",  # 监听所有接口
         port=8080,
-        reload=True,
+        reload=False,  # 禁用热重载，避免任务数据丢失
         log_level="info",
         timeout_keep_alive=30,  # 增加keep-alive超时
         timeout_graceful_shutdown=30,  # 优雅关闭超时

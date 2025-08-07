@@ -100,7 +100,12 @@ class LangGraphTravelAgents:
 
     def _create_agent_graph(self) -> StateGraph:
         """
-        创建LangGraph多智能体工作流
+        创建LangGraph多智能体工作流图
+
+        解释：
+        该方法负责构建整个多智能体系统的工作流图（StateGraph）。
+        在LangGraph框架中，StateGraph用于定义各个智能体节点（如旅行顾问、天气分析师等）以及它们之间的连接关系和执行顺序。
+        通过添加节点和设置条件边缘，可以灵活地控制智能体之间的协作流程，实现复杂的多智能体任务分工与协作。
 
         这个方法构建了智能体间的工作流程图，定义了：
         1. 各个智能体节点
@@ -661,7 +666,7 @@ class LangGraphTravelAgents:
         """
         运行完整的多智能体旅行规划工作流
 
-        这是整个LangGraph多智能体系统的主入口方法，
+        这是整个AI旅行规划智能体的主入口方法，
         它初始化状态、执行工作流并返回最终的旅行计划。
 
         参数：

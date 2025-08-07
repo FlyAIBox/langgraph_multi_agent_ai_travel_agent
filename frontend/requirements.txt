@@ -20,8 +20,17 @@ pandas==2.3.1
 # 使用场景：展示旅行路线、价格趋势、用户偏好分析等可视化数据
 plotly==6.2.0
 
-# PDF生成库
-# 功能：将Markdown转换为PDF格式
-# 使用场景：生成旅行规划PDF报告
+# Markdown 解析库 - 用于解析和转换 Markdown 格式文本
+# 功能：将 Markdown 文本转换为 HTML 格式，支持各种 Markdown 语法
+# 使用场景：解析用户输入的旅行规划文本，转换为可打印的格式
 markdown==3.8.2
+
+# WeasyPrint - 现代化的 HTML/CSS 到 PDF 转换工具
+# 功能：将 HTML 和 CSS 样式转换为高质量的 PDF 文档，支持现代 CSS 特性
+# 使用场景：将格式化的旅行规划内容转换为精美的 PDF 报告
+weasyprint==62.3
+
+# ReportLab - Python 强大的 PDF 生成库
+# 功能：直接使用 Python 代码生成 PDF 文档，支持复杂的页面布局和图形绘制
+# 使用场景：创建包含图表、表格和自定义样式的旅行规划 PDF 报告
 reportlab==4.4.3

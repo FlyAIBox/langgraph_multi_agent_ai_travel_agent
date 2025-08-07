@@ -34,7 +34,7 @@ from config.langgraph_config import langgraph_config as config
 
 # 创建FastAPI应用
 app = FastAPI(
-    title="LangGraph多智能体AI旅行规划API",
+    title="AI旅行规划智能体API",
     description="基于LangGraph框架的多智能体旅行规划系统API",
     version="1.0.0"
 )
@@ -87,7 +87,7 @@ class PlanningStatus(BaseModel):
 async def root():
     """根路径，返回API信息"""
     return {
-        "message": "LangGraph多智能体AI旅行规划API",
+        "message": "AI旅行规划智能体API",
         "version": "1.0.0",
         "status": "运行中",
         "agents": [
@@ -176,14 +176,14 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
         try:
             # 使用asyncio.wait_for添加超时控制
             async def run_langgraph():
-                # 初始化LangGraph系统
-                print(f"任务 {task_id}: 初始化LangGraph系统")
+                # 初始化AI旅行规划智能体
+                print(f"任务 {task_id}: 初始化AI旅行规划智能体")
                 planning_tasks[task_id]["progress"] = 50
-                planning_tasks[task_id]["message"] = "初始化LangGraph系统..."
+                planning_tasks[task_id]["message"] = "初始化AI旅行规划智能体..."
 
                 try:
                     travel_agents = LangGraphTravelAgents()
-                    print(f"任务 {task_id}: LangGraph系统初始化完成")
+                    print(f"任务 {task_id}: AI旅行规划智能体初始化完成")
 
                     planning_tasks[task_id]["progress"] = 60
                     planning_tasks[task_id]["message"] = "开始多智能体协作..."
@@ -282,8 +282,8 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
             await save_planning_result(task_id, simplified_result, langgraph_request)
                 
         except Exception as agent_error:
-            # 如果LangGraph系统出错，提供一个简化的响应
-            print(f"任务 {task_id}: LangGraph系统错误: {str(agent_error)}")
+            # 如果AI旅行规划智能体出错，提供一个简化的响应
+            print(f"任务 {task_id}: AI旅行规划智能体错误: {str(agent_error)}")
             
             # 创建一个简化的旅行计划作为回退
             simplified_result = {
@@ -554,7 +554,7 @@ async def mock_travel_plan(request: TravelRequest):
         raise HTTPException(status_code=500, detail=f"模拟规划失败: {str(e)}")
 
 if __name__ == "__main__":
-    print("🚀 启动LangGraph多智能体AI旅行规划API服务器...")
+    print("🚀 启动AI旅行规划智能体API服务器...")
     print(f"📍 API文档: http://localhost:8080/docs")
     print(f"🔧 健康检查: http://localhost:8080/health")
 

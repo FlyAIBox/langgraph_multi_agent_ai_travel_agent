@@ -479,14 +479,122 @@ def check_pdf_capability() -> bool:
     except ImportError:
         return False
 
-def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
-    """生成PDF格式的旅行规划报告"""
+def generate_pdf_from_markdown(result: Dict[str, Any], task_id: str) -> bytes:
+    """使用markdown转PDF的方式生成报告"""
     try:
-        # 尝试导入reportlab
+        # 方法1: 尝试使用markdown + weasyprint
+        try:
+            import markdown
+            from weasyprint import HTML, CSS
+            from io import BytesIO
+
+            # 生成markdown内容
+            markdown_content = generate_markdown_report(result, task_id)
+
+            # 转换为HTML
+            md = markdown.Markdown(extensions=['tables', 'fenced_code'])
+            html_content = md.convert(markdown_content)
+
+            # 添加CSS样式
+            css_content = """
+            @page {
+                margin: 2cm;
+                size: A4;
+            }
+            body {
+                font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+                line-height: 1.6;
+                color: #333;
+                font-size: 12pt;
+            }
+            h1 {
+                color: #2c3e50;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+                page-break-after: avoid;
+            }
+            h2 {
+                color: #34495e;
+                border-bottom: 2px solid #ecf0f1;
+                padding-bottom: 5px;
+                page-break-after: avoid;
+                margin-top: 20px;
+            }
+            h3 {
+                color: #7f8c8d;
+                page-break-after: avoid;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 15px 0;
+                page-break-inside: avoid;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f8f9fa;
+                font-weight: bold;
+            }
+            hr {
+                border: none;
+                height: 1px;
+                background-color: #ecf0f1;
+                margin: 20px 0;
+            }
+            p {
+                margin: 8px 0;
+            }
+            """
+
+            # 完整HTML
+            full_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>旅行规划报告</title>
+            </head>
+            <body>
+                {html_content}
+            </body>
+            </html>
+            """
+
+            # 生成PDF
+            pdf_buffer = BytesIO()
+            HTML(string=full_html).write_pdf(
+                pdf_buffer,
+                stylesheets=[CSS(string=css_content)]
+            )
+            pdf_buffer.seek(0)
+            return pdf_buffer.getvalue()
+
+        except ImportError:
+            # 如果weasyprint不可用，返回None
+            st.warning("PDF生成需要安装weasyprint库")
+            st.code("pip install weasyprint", language="bash")
+            return None
+
+    except Exception as e:
+        st.error(f"Markdown转PDF失败: {str(e)}")
+        return None
+
+def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
+    """生成PDF格式的旅行规划报告 - 优先使用markdown转PDF"""
+    # 首先尝试markdown转PDF
+    pdf_content = generate_pdf_from_markdown(result, task_id)
+    if pdf_content:
+        return pdf_content
+
+    # 如果markdown转PDF失败，使用简化的reportlab备选方案
+    try:
         from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib import colors
         from io import BytesIO
 
         buffer = BytesIO()
@@ -494,57 +602,47 @@ def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
         styles = getSampleStyleSheet()
         story = []
 
-        # 自定义样式
+        # 简化的样式
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
-            fontSize=24,
-            spaceAfter=30,
+            fontSize=20,
+            spaceAfter=20,
             alignment=1,  # 居中
-            textColor=colors.darkblue
         )
 
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading2'],
-            fontSize=16,
-            spaceAfter=15,
-            textColor=colors.darkgreen
+            fontSize=14,
+            spaceAfter=10,
         )
 
         travel_plan = result.get("travel_plan", {})
         destination = travel_plan.get("destination", "未知")
 
         # 标题
-        story.append(Paragraph(f"🌍 {destination} 旅行规划报告", title_style))
+        story.append(Paragraph(f"{destination} 旅行规划报告", title_style))
         story.append(Spacer(1, 20))
 
-        # 基本信息表格
-        basic_info = [
-            ['项目', '详情'],
-            ['🎯 目的地', destination],
-            ['📅 旅行日期', travel_plan.get('travel_dates', '未知')],
-            ['⏰ 行程天数', f"{travel_plan.get('duration', 0)}天"],
-            ['👥 团队人数', f"{travel_plan.get('group_size', 0)}人"],
-            ['💰 预算类型', travel_plan.get('budget_range', '未知')],
-            ['🎨 兴趣爱好', ', '.join(travel_plan.get('interests', [])) or '无特殊偏好']
+        # 基本信息 - 使用简单段落
+        story.append(Paragraph("规划概览", heading_style))
+        story.append(Spacer(1, 10))
+
+        info_items = [
+            f"目的地: {destination}",
+            f"旅行日期: {travel_plan.get('travel_dates', '未知')}",
+            f"行程天数: {travel_plan.get('duration', 0)}天",
+            f"团队人数: {travel_plan.get('group_size', 0)}人",
+            f"预算类型: {travel_plan.get('budget_range', '未知')}",
+            f"兴趣爱好: {', '.join(travel_plan.get('interests', [])) or '无特殊偏好'}"
         ]
 
-        table = Table(basic_info, colWidths=[120, 300])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP')
-        ]))
+        for item in info_items:
+            story.append(Paragraph(f"• {item}", styles['Normal']))
+            story.append(Spacer(1, 5))
 
-        story.append(table)
-        story.append(Spacer(1, 30))
+        story.append(Spacer(1, 20))
 
         # AI智能体建议
         story.append(Paragraph("🤖 AI智能体专业建议", heading_style))
@@ -590,28 +688,22 @@ def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
         story.append(Spacer(1, 30))
         story.append(Paragraph("📄 报告信息", heading_style))
 
-        report_info = [
-            ['任务ID', task_id],
-            ['生成时间', datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
-            ['生成方式', 'LangGraph多智能体AI系统'],
-            ['报告格式', 'PDF']
+        # 报告信息 - 使用简单段落
+        report_items = [
+            f"任务ID: {task_id}",
+            f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"生成方式: LangGraph多智能体AI系统",
+            f"报告格式: PDF"
         ]
 
-        info_table = Table(report_info, colWidths=[120, 300])
-        info_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP')
-        ]))
+        for item in report_items:
+            story.append(Paragraph(f"• {item}", styles['Normal']))
+            story.append(Spacer(1, 5))
 
-        story.append(info_table)
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
 
         # 页脚
-        footer_text = "本报告由LangGraph多智能体AI旅行规划系统自动生成"
+        footer_text = "本报告由AI旅行规划智能体系统自动生成"
         story.append(Paragraph(footer_text, styles['Normal']))
 
         # 生成PDF

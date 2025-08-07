@@ -2,7 +2,7 @@
 
 ## 🎯 功能概述
 
-LangGraph多智能体AI旅行规划系统现在支持多种格式的报告导出：
+AI旅行规划智能体系统现在支持多种格式的报告导出：
 
 1. **📊 JSON格式** - 原始数据，包含完整的AI分析结果
 2. **📝 Markdown格式** - 格式化报告，兼容性最好（推荐）
@@ -46,9 +46,22 @@ LangGraph多智能体AI旅行规划系统现在支持多种格式的报告导出
 ### ⚠️ 要求
 需要安装额外的Python库：
 ```bash
-pip install reportlab==4.2.5
-pip install markdown==3.7
+pip install markdown==3.8.2
+pip install weasyprint==62.3
+pip install reportlab==4.4.3
 ```
+
+### 🔧 技术方案
+系统使用两种PDF生成方案：
+
+1. **主要方案**: Markdown → HTML → PDF (weasyprint)
+   - 更好的样式支持
+   - 完美的表格和布局
+   - 支持CSS样式
+
+2. **备选方案**: 直接PDF生成 (reportlab)
+   - 当weasyprint不可用时自动切换
+   - 简化的布局和样式
 
 ### 🎨 PDF样式特点
 - **专业排版**: 使用表格和分段布局
@@ -141,9 +154,13 @@ pip install reportlab==4.2.5 markdown==3.7
 - **数据分析**: JSON格式
 
 ### 2. 文件命名规则
-- Markdown: `travel_plan_[任务ID前8位].md`
-- PDF: `travel_plan_[任务ID前8位].pdf`
+- Markdown: `目的地城市-旅行人数-旅行规划指南.md`
+- PDF: `目的地城市-旅行人数-旅行规划指南.pdf`
 - JSON: 通过API链接下载
+
+**示例**:
+- `北京-2人-旅行规划指南.md`
+- `上海-4人-旅行规划指南.pdf`
 
 ### 3. 内容优化
 - **简化兴趣**: 减少兴趣爱好数量，提高生成质量

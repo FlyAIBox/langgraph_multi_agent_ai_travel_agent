@@ -471,184 +471,102 @@ def generate_markdown_report(result: Dict[str, Any], task_id: str) -> str:
 
     return markdown_content
 
-def check_pdf_capability() -> bool:
-    """检查PDF生成能力"""
-    try:
-        import reportlab
-        return True
-    except ImportError:
-        return False
 
-def generate_pdf_from_markdown(result: Dict[str, Any], task_id: str) -> bytes:
-    """使用markdown转PDF的方式生成报告"""
-    try:
-        # 方法1: 尝试使用markdown + weasyprint
+
+def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
+    """获取规划状态"""
+    max_retries = 3
+    for retry in range(max_retries):
         try:
-            import markdown
-            from weasyprint import HTML, CSS
-            from io import BytesIO
+            # 增加超时时间到15秒
+            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=15)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                st.warning(f"获取状态失败: HTTP {response.status_code}")
+                return None
+        except requests.exceptions.Timeout:
+            if retry < max_retries - 1:
+                st.warning(f"请求超时，正在重试 ({retry + 1}/{max_retries})...")
+                time.sleep(2)
+            else:
+                st.error("请求超时，请检查网络连接")
+                return None
+        except Exception as e:
+            if retry < max_retries - 1:
+                st.warning(f"请求失败，正在重试 ({retry + 1}/{max_retries}): {str(e)}")
+                time.sleep(2)
+            else:
+                st.error(f"获取状态失败: {str(e)}")
+                return None
+    return None
 
-            # 生成markdown内容
-            markdown_content = generate_markdown_report(result, task_id)
-
-            # 转换为HTML
-            md = markdown.Markdown(extensions=['tables', 'fenced_code'])
-            html_content = md.convert(markdown_content)
-
-            # 添加CSS样式
-            css_content = """
-            @page {
-                margin: 2cm;
-                size: A4;
-            }
-            body {
-                font-family: 'Arial', 'Microsoft YaHei', sans-serif;
-                line-height: 1.6;
-                color: #333;
-                font-size: 12pt;
-            }
-            h1 {
-                color: #2c3e50;
-                border-bottom: 3px solid #3498db;
-                padding-bottom: 10px;
-                page-break-after: avoid;
-            }
-            h2 {
-                color: #34495e;
-                border-bottom: 2px solid #ecf0f1;
-                padding-bottom: 5px;
-                page-break-after: avoid;
-                margin-top: 20px;
-            }
-            h3 {
-                color: #7f8c8d;
-                page-break-after: avoid;
-            }
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                margin: 15px 0;
-                page-break-inside: avoid;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }
-            th {
-                background-color: #f8f9fa;
-                font-weight: bold;
-            }
-            hr {
-                border: none;
-                height: 1px;
-                background-color: #ecf0f1;
-                margin: 20px 0;
-            }
-            p {
-                margin: 8px 0;
-            }
-            """
-
-            # 完整HTML
-            full_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>旅行规划报告</title>
-            </head>
-            <body>
-                {html_content}
-            </body>
-            </html>
-            """
-
-            # 生成PDF
-            pdf_buffer = BytesIO()
-            HTML(string=full_html).write_pdf(
-                pdf_buffer,
-                stylesheets=[CSS(string=css_content)]
-            )
-            pdf_buffer.seek(0)
-            return pdf_buffer.getvalue()
-
-        except ImportError:
-            # 如果weasyprint不可用，返回None
-            st.warning("PDF生成需要安装weasyprint库")
-            st.code("pip install weasyprint", language="bash")
+def get_planning_result(task_id: str) -> Optional[Dict[str, Any]]:
+    """获取规划结果"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/result/{task_id}", timeout=30)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"获取结果失败: HTTP {response.status_code}")
             return None
-
     except Exception as e:
-        st.error(f"Markdown转PDF失败: {str(e)}")
+        st.error(f"获取结果失败: {str(e)}")
         return None
 
-def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
-    """生成PDF格式的旅行规划报告 - 优先使用markdown转PDF"""
-    # 首先尝试markdown转PDF
-    pdf_content = generate_pdf_from_markdown(result, task_id)
-    if pdf_content:
-        return pdf_content
+def save_report_to_results(content: str, filename: str) -> str:
+    """保存Markdown报告到results目录"""
+    import os
 
-    # 如果markdown转PDF失败，使用简化的reportlab备选方案
+    # 确保results目录存在
+    results_dir = "../results"
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    # 生成完整文件路径
+    file_path = os.path.join(results_dir, filename)
+
     try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from io import BytesIO
+        # 保存markdown文件
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return file_path
+    except Exception as e:
+        st.error(f"保存文件失败: {str(e)}")
+        return None
 
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50)
-        styles = getSampleStyleSheet()
-        story = []
+def display_planning_result(result: Dict[str, Any]):
+    """显示规划结果"""
+    if not result:
+        return
 
-        # 简化的样式
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=20,
-            spaceAfter=20,
-            alignment=1,  # 居中
-        )
+    st.markdown("### 📋 规划结果")
 
-        heading_style = ParagraphStyle(
-            'CustomHeading',
-            parent=styles['Heading2'],
-            fontSize=14,
-            spaceAfter=10,
-        )
+    travel_plan = result.get("travel_plan", {})
+    agent_outputs = result.get("agent_outputs", {})
 
-        travel_plan = result.get("travel_plan", {})
-        destination = travel_plan.get("destination", "未知")
+    # 显示基本信息
+    if travel_plan:
+        st.markdown("#### 🎯 规划概览")
 
-        # 标题
-        story.append(Paragraph(f"{destination} 旅行规划报告", title_style))
-        story.append(Spacer(1, 20))
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("目的地", travel_plan.get("destination", "未知"))
+            st.metric("行程天数", f"{travel_plan.get('duration', 0)}天")
+        with col2:
+            st.metric("团队人数", f"{travel_plan.get('group_size', 0)}人")
+            st.metric("预算类型", travel_plan.get("budget_range", "未知"))
+        with col3:
+            interests = travel_plan.get("interests", [])
+            st.metric("兴趣爱好", f"{len(interests)}项")
+            if interests:
+                st.write("、".join(interests))
 
-        # 基本信息 - 使用简单段落
-        story.append(Paragraph("规划概览", heading_style))
-        story.append(Spacer(1, 10))
+    # 显示智能体输出
+    if agent_outputs:
+        st.markdown("#### 🤖 AI智能体建议")
 
-        info_items = [
-            f"目的地: {destination}",
-            f"旅行日期: {travel_plan.get('travel_dates', '未知')}",
-            f"行程天数: {travel_plan.get('duration', 0)}天",
-            f"团队人数: {travel_plan.get('group_size', 0)}人",
-            f"预算类型: {travel_plan.get('budget_range', '未知')}",
-            f"兴趣爱好: {', '.join(travel_plan.get('interests', [])) or '无特殊偏好'}"
-        ]
-
-        for item in info_items:
-            story.append(Paragraph(f"• {item}", styles['Normal']))
-            story.append(Spacer(1, 5))
-
-        story.append(Spacer(1, 20))
-
-        # AI智能体建议
-        story.append(Paragraph("🤖 AI智能体专业建议", heading_style))
-        story.append(Spacer(1, 15))
-
-        agent_outputs = result.get("agent_outputs", {})
+        # 智能体名称映射
         agent_names_cn = {
             'travel_advisor': '🏛️ 旅行顾问',
             'weather_analyst': '🌤️ 天气分析师',
@@ -661,196 +579,241 @@ def generate_pdf_report(result: Dict[str, Any], task_id: str) -> bytes:
 
         for agent_name, output in agent_outputs.items():
             agent_display_name = agent_names_cn.get(agent_name, agent_name)
-            response = output.get('response', '无输出')
             status = output.get('status', '未知')
+            response = output.get('response', '无输出')
 
-            # 智能体标题
-            agent_title = f"{agent_display_name} (状态: {status.upper()})"
-            story.append(Paragraph(agent_title, styles['Heading3']))
-
-            # 智能体内容（处理长文本）
-            if len(response) > 800:
-                content = response[:800] + "\n\n[内容过长，已截取前800字符...]"
-            else:
-                content = response
-
-            # 将内容分段处理
-            paragraphs = content.split('\n\n')
-            for para in paragraphs:
-                if para.strip():
-                    story.append(Paragraph(para.strip(), styles['Normal']))
-                    story.append(Spacer(1, 8))
-
-            story.append(Spacer(1, 20))
-
-        # 报告信息
-        from datetime import datetime
-        story.append(Spacer(1, 30))
-        story.append(Paragraph("📄 报告信息", heading_style))
-
-        # 报告信息 - 使用简单段落
-        report_items = [
-            f"任务ID: {task_id}",
-            f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            f"生成方式: LangGraph多智能体AI系统",
-            f"报告格式: PDF"
-        ]
-
-        for item in report_items:
-            story.append(Paragraph(f"• {item}", styles['Normal']))
-            story.append(Spacer(1, 5))
-
-        story.append(Spacer(1, 15))
-
-        # 页脚
-        footer_text = "本报告由AI旅行规划智能体系统自动生成"
-        story.append(Paragraph(footer_text, styles['Normal']))
-
-        # 生成PDF
-        doc.build(story)
-        buffer.seek(0)
-        return buffer.getvalue()
-
-    except ImportError:
-        # 如果reportlab不可用，返回None
-        st.warning("PDF生成需要安装reportlab库，请使用Markdown格式下载")
-        return None
-    except Exception as e:
-        st.error(f"PDF生成失败: {str(e)}")
-        return None
-
-def display_planning_result(result: Dict[str, Any]):
-    """显示规划结果"""
-    if not result:
-        return
-    
-    st.markdown("### 📋 规划结果")
-    
-    travel_plan = result.get("travel_plan", {})
-    agent_outputs = result.get("agent_outputs", {})
-    
-    # 显示行程概览
-    st.markdown("#### 🌍 行程概览")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("目的地", travel_plan.get("destination", "未知"))
-    with col2:
-        st.metric("行程天数", f"{travel_plan.get('duration', 0)} 天")
-    with col3:
-        st.metric("团队人数", f"{travel_plan.get('group_size', 0)} 人")
-    with col4:
-        st.metric("预算类型", travel_plan.get("budget_range", "未知"))
-    
-    # 显示智能体贡献
-    st.markdown("#### 🤖 智能体贡献")
-    
-    agent_names_cn = {
-        'travel_advisor': '🏛️ 旅行顾问',
-        'weather_analyst': '🌤️ 天气分析师',
-        'budget_optimizer': '💰 预算优化师',
-        'local_expert': '🏠 当地专家',
-        'itinerary_planner': '📅 行程规划师'
-    }
-    
-    for agent_name, output in agent_outputs.items():
-        agent_display_name = agent_names_cn.get(agent_name, agent_name)
-        
-        with st.expander(f"{agent_display_name} - {output.get('status', '未知').upper()}"):
-            response = output.get("response", "无输出")
-            timestamp = output.get("timestamp", "")
-            
-            st.markdown(f"**完成时间**: {timestamp[:19] if timestamp else '未知'}")
-            st.markdown("**专业建议**:")
-            st.text_area("", value=response, height=200, disabled=True, key=f"agent_{agent_name}")
+            # 使用expander显示每个智能体的建议
+            with st.expander(f"{agent_display_name} (状态: {status.upper()})", expanded=True):
+                st.text_area("智能体建议", value=response, height=200, disabled=True,
+                           key=f"agent_{agent_name}", label_visibility="collapsed")
 
 def main():
     """主函数"""
-    display_header()
-    
-    # 检查API状态
-    api_healthy, health_info = check_api_health()
-    
-    if not api_healthy:
-        st.error("🚨 后端API服务不可用，请确保API服务器正在运行")
-        st.code("cd backend && python api_server.py")
+    st.title("🌍 AI旅行规划智能体")
+    st.markdown("---")
+
+    # 检查API健康状态
+    is_healthy, health_info = check_api_health()
+
+    if not is_healthy:
+        st.error("🚨 后端服务连接失败")
+        st.error(health_info.get("error", "未知错误"))
+        st.info("请确保后端服务已启动：`cd backend && python api_server.py`")
         return
-    
-    st.success("✅ API服务正常运行")
-    
-    # 显示智能体信息
-    with st.expander("🤖 查看AI智能体团队", expanded=False):
-        display_agent_info()
-    
-    # 创建旅行规划表单
-    travel_data = create_travel_form()
-    
-    if travel_data:
+
+    st.success("✅ 后端服务连接正常")
+
+    # 侧边栏 - 旅行规划表单
+    with st.sidebar:
+        st.header("📝 旅行规划表单")
+
+        # 基本信息
+        destination = st.text_input("🎯 目的地", placeholder="例如：北京、上海、成都")
+
+        # 日期选择
+        col1, col2 = st.columns(2)
+        with col1:
+            start_date = st.date_input("📅 出发日期", value=date.today() + timedelta(days=7))
+        with col2:
+            end_date = st.date_input("📅 返回日期", value=date.today() + timedelta(days=10))
+
+        # 团队信息
+        group_size = st.number_input("👥 团队人数", min_value=1, max_value=20, value=2)
+
+        # 预算范围
+        budget_range = st.selectbox("💰 预算范围", [
+            "经济型 (500-1000元/天)",
+            "中等预算 (1000-2000元/天)",
+            "高端旅行 (2000-5000元/天)",
+            "奢华体验 (5000元以上/天)"
+        ])
+
+        # 兴趣爱好
+        st.markdown("🎨 **兴趣爱好**")
+        interests = []
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.checkbox("🏛️ 历史文化"):
+                interests.append("历史文化")
+            if st.checkbox("🍽️ 美食体验"):
+                interests.append("美食体验")
+            if st.checkbox("🏞️ 自然风光"):
+                interests.append("自然风光")
+            if st.checkbox("🎭 艺术表演"):
+                interests.append("艺术表演")
+
+        with col2:
+            if st.checkbox("🛍️ 购物娱乐"):
+                interests.append("购物娱乐")
+            if st.checkbox("🏃 运动健身"):
+                interests.append("运动健身")
+            if st.checkbox("📸 摄影打卡"):
+                interests.append("摄影打卡")
+            if st.checkbox("🧘 休闲放松"):
+                interests.append("休闲放松")
+
+        # 提交按钮
+        if st.button("🚀 开始规划", type="primary", use_container_width=True):
+            if not destination:
+                st.error("请输入目的地")
+            elif start_date >= end_date:
+                st.error("返回日期必须晚于出发日期")
+            else:
+                # 创建旅行规划请求
+                travel_data = {
+                    "destination": destination,
+                    "start_date": start_date.strftime("%Y-%m-%d"),
+                    "end_date": end_date.strftime("%Y-%m-%d"),
+                    "group_size": group_size,
+                    "budget_range": budget_range,
+                    "interests": interests
+                }
+
+                # 存储到session state
+                st.session_state.travel_data = travel_data
+                st.session_state.planning_started = True
+
+    # 主内容区域
+    if hasattr(st.session_state, 'planning_started') and st.session_state.planning_started:
+        travel_data = st.session_state.travel_data
+
+        st.markdown("### 🎯 规划请求")
+        st.json(travel_data)
+
         # 创建规划任务
         with st.spinner("正在创建规划任务..."):
             task_id = create_travel_plan(travel_data)
-        
+
         if task_id:
-            st.success(f"✅ 任务创建成功！任务ID: {task_id}")
-            
-            # 显示规划进度
-            result = display_planning_progress(task_id)
-            
-            # 显示结果
-            if result:
-                display_planning_result(result)
+            st.success(f"✅ 规划任务已创建，任务ID: {task_id}")
 
-                # 生成和下载报告
-                st.markdown("### 📥 下载报告")
+            # 显示进度
+            progress_placeholder = st.empty()
+            status_placeholder = st.empty()
 
-                # 检查PDF生成能力
-                pdf_available = check_pdf_capability()
+            # 轮询任务状态
+            max_attempts = 120  # 最多等待10分钟
+            attempt = 0
 
-                col1, col2 = st.columns(2)
+            while attempt < max_attempts:
+                status_info = get_planning_status(task_id)
 
-                with col1:
-                    st.markdown("#### 📄 原始数据")
-                    # 下载JSON格式
-                    download_url = f"{API_BASE_URL}/download/{task_id}"
-                    st.markdown(f"[📊 JSON格式数据]({download_url})")
-                    st.caption("包含完整的AI分析数据")
+                if status_info:
+                    status = status_info.get("status", "unknown")
+                    progress = status_info.get("progress", 0)
+                    message = status_info.get("message", "处理中...")
+                    current_agent = status_info.get("current_agent", "")
 
-                with col2:
-                    st.markdown("#### 📝 格式化报告")
+                    # 更新进度条
+                    progress_placeholder.progress(progress / 100, text=f"进度: {progress}%")
 
-                    # Markdown报告
-                    markdown_content = generate_markdown_report(result, task_id)
-                    st.download_button(
-                        label="📥 下载Markdown报告",
-                        data=markdown_content,
-                        file_name=f"travel_plan_{task_id[:8]}.md",
-                        mime="text/markdown",
-                        help="推荐格式，支持所有设备查看"
-                    )
-
-                    # PDF报告
-                    if pdf_available:
-                        if st.button("📄 生成PDF报告", help="生成专业PDF格式报告"):
-                            with st.spinner("正在生成PDF报告..."):
-                                try:
-                                    pdf_content = generate_pdf_report(result, task_id)
-                                    if pdf_content:
-                                        st.download_button(
-                                            label="📥 下载PDF报告",
-                                            data=pdf_content,
-                                            file_name=f"travel_plan_{task_id[:8]}.pdf",
-                                            mime="application/pdf"
-                                        )
-                                        st.success("PDF报告生成成功！")
-                                    else:
-                                        st.error("PDF生成失败，请使用Markdown格式")
-                                except Exception as e:
-                                    st.error(f"PDF生成失败: {str(e)}")
-                                    st.info("💡 建议使用Markdown格式，兼容性更好")
+                    # 更新状态信息
+                    if current_agent:
+                        status_placeholder.info(f"🤖 当前智能体: {current_agent} | {message}")
                     else:
-                        st.info("💡 PDF功能需要安装额外依赖")
-                        st.code("pip install reportlab", language="bash")
-                        st.caption("或直接使用Markdown格式，效果同样出色")
+                        status_placeholder.info(f"📋 状态: {message}")
+
+                    if status == "completed":
+                        st.success("🎉 规划完成！")
+
+                        # 获取结果
+                        result = get_planning_result(task_id)
+                        if result:
+                            # 显示结果
+                            display_planning_result(result)
+
+                            # 生成和下载报告
+                            st.markdown("### 📥 下载报告")
+
+                            col1, col2 = st.columns(2)
+
+                            with col1:
+                                st.markdown("#### 📄 原始数据")
+                                # 下载JSON格式
+                                download_url = f"{API_BASE_URL}/download/{task_id}"
+                                st.markdown(f"[📊 JSON格式数据]({download_url})")
+                                st.caption("包含完整的AI分析数据")
+
+                            with col2:
+                                st.markdown("#### 📝 Markdown报告")
+
+                                # 生成文件名
+                                travel_plan = result.get("travel_plan", {})
+                                destination = travel_plan.get("destination", "未知目的地").replace("/", "-").replace("\\", "-")
+                                group_size = travel_plan.get("group_size", 1)
+                                filename_base = f"{destination}-{group_size}人-旅行规划指南"
+
+                                # Markdown报告
+                                markdown_content = generate_markdown_report(result, task_id)
+
+                                # 保存到results目录
+                                md_filename = f"{filename_base}.md"
+                                saved_md_path = save_report_to_results(markdown_content, md_filename)
+
+                                st.download_button(
+                                    label="📥 下载Markdown报告",
+                                    data=markdown_content,
+                                    file_name=md_filename,
+                                    mime="text/markdown",
+                                    help="推荐格式，支持所有设备查看"
+                                )
+
+                                if saved_md_path:
+                                    st.success(f"✅ 报告已保存到: {saved_md_path}")
+
+                                st.info("💡 Markdown格式兼容性最好，支持所有设备查看")
+
+                        break
+
+                    elif status == "failed":
+                        error_msg = status_info.get("error", "未知错误")
+                        st.error(f"❌ 规划失败: {error_msg}")
+                        break
+
+                    elif status == "processing":
+                        # 继续等待
+                        time.sleep(5)
+                        attempt += 1
+
+                    else:
+                        # 未知状态，继续等待
+                        time.sleep(5)
+                        attempt += 1
+                else:
+                    st.error("❌ 无法获取任务状态")
+                    break
+
+            if attempt >= max_attempts:
+                st.warning("⏰ 规划超时，请稍后查看结果")
+        else:
+            st.error("❌ 创建规划任务失败")
+
+    else:
+        # 显示欢迎信息
+        st.markdown("""
+        ## 🎉 欢迎使用AI旅行规划智能体！
+
+        ### ✨ 功能特色
+        - 🤖 **多智能体协作**: 6个专业AI智能体为您服务
+        - 🎯 **个性化规划**: 根据您的兴趣和预算定制
+        - 📊 **实时进度**: 查看规划过程的每一步
+        - 📄 **专业报告**: 生成详细的旅行规划文档
+
+        ### 🚀 开始使用
+        1. 在左侧填写旅行需求
+        2. 点击"开始规划"按钮
+        3. 等待AI智能体完成规划
+        4. 下载您的专属旅行指南
+
+        ### 🤖 智能体团队
+        - 🏛️ **旅行顾问**: 提供目的地概览和建议
+        - 🌤️ **天气分析师**: 分析天气状况和穿衣建议
+        - 💰 **预算优化师**: 制定合理的预算分配
+        - 🏠 **当地专家**: 推荐地道的体验和美食
+        - 📅 **行程规划师**: 安排详细的日程计划
+        """)
 
 if __name__ == "__main__":
     main()
+
